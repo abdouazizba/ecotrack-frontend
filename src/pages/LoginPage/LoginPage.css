@@ -1,0 +1,724 @@
+/* ============================================
+   PAGE DE CONNEXION - ECOTRACK
+   Layout asymétrique moderna avec forme/vagues
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f9f7 100%);
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+/* ============================================
+   DÉCORATION - FORMES GÉOMÉTRIQUES ET VAGUES
+   ============================================ */
+
+.login-bg-decoration {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.shape {
+  position: absolute;
+  opacity: 0.08;
+}
+
+.shape-1 {
+  width: 400px;
+  height: 400px;
+  background: #16a34a;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  top: -100px;
+  right: -50px;
+  animation: float-shape 8s ease-in-out infinite;
+}
+
+.shape-2 {
+  width: 300px;
+  height: 300px;
+  background: #000000;
+  border-radius: 20% 80% 30% 70% / 60% 40% 60% 40%;
+  bottom: -80px;
+  left: -50px;
+  animation: float-shape 10s ease-in-out infinite reverse;
+}
+
+.shape-3 {
+  width: 250px;
+  height: 250px;
+  background: #16a34a;
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  bottom: 50px;
+  right: 10%;
+  animation: float-shape 12s ease-in-out infinite;
+}
+
+/* Vagues en arrière-plan */
+.wave {
+  position: absolute;
+  opacity: 0.05;
+  width: 200%;
+  height: 200%;
+}
+
+.wave-1 {
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,50 Q300,0 600,50 T1200,50 L1200,120 L0,120 Z" fill="%2316a34a"/></svg>');
+  bottom: -50px;
+  left: 0;
+  animation: wave-animation 15s linear infinite;
+}
+
+.wave-2 {
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,60 Q300,30 600,60 T1200,60 L1200,120 L0,120 Z" fill="%23000000"/></svg>');
+  bottom: -40px;
+  left: 50px;
+  animation: wave-animation 20s linear infinite reverse;
+  opacity: 0.03;
+}
+
+/* Animations */
+@keyframes float-shape {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(10deg);
+  }
+}
+
+@keyframes wave-animation {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(600px);
+  }
+}
+
+/* ============================================
+   ICÔNES FLOTTANTES MINIMALISTES
+   ============================================ */
+
+.floating-icons {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.icon-trash,
+.icon-leaf {
+  position: absolute;
+  color: #16a34a;
+  opacity: 0.15;
+  animation: float-icon 4s ease-in-out infinite;
+}
+
+.icon-1 {
+  top: 15%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.icon-2 {
+  top: 65%;
+  right: 8%;
+  color: #000000;
+  animation-delay: 1s;
+}
+
+.icon-3 {
+  bottom: 20%;
+  left: 5%;
+  animation-delay: 2s;
+}
+
+.icon-4 {
+  top: 45%;
+  right: 15%;
+  animation-delay: 1.5s;
+}
+
+@keyframes float-icon {
+  0%, 100% {
+    transform: translateY(0px);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateY(-20px);
+    opacity: 0.08;
+  }
+}
+
+/* ============================================
+   CONTENEUR PRINCIPAL - LAYOUT ASYMÉTRIQUE
+   ============================================ */
+
+.login-container {
+  display: flex;
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+  margin: 20px;
+}
+
+.login-left {
+  flex: 1;
+  padding: 60px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(135deg, #f3f9f7 0%, #f0f7f5 100%);
+  border-right: 2px solid #e8f5e9;
+  position: relative;
+  min-height: 600px;
+}
+
+.login-right {
+  flex: 1;
+  padding: 60px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+/* ============================================
+   SECTION GAUCHE - LOGO ET TEXTE
+   ============================================ */
+
+.logo-section {
+  margin-bottom: 40px;
+  animation: slide-right 0.8s ease-out;
+}
+
+.login-logo {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 15px rgba(22, 163, 74, 0.2));
+  transition: transform 0.3s ease;
+}
+
+.login-logo:hover {
+  transform: scale(1.02);
+}
+
+.welcome-text {
+  animation: slide-right 1s ease-out 0.2s backwards;
+}
+
+.welcome-text h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, #000000 0%, #16a34a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-text p {
+  font-size: 1.1rem;
+  color: #666666;
+  margin-bottom: 35px;
+  line-height: 1.6;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 20px;
+  background: rgba(22, 163, 74, 0.08);
+  border-left: 4px solid #16a34a;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  transform: translateX(10px);
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.feature-icon {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.feature-item span {
+  color: #333333;
+  font-weight: 500;
+}
+
+/* ============================================
+   SECTION DROITE - FORMULAIRE
+   ============================================ */
+
+.form-header {
+  margin-bottom: 35px;
+  animation: fade-in 0.8s ease-out 0.4s backwards;
+}
+
+.form-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.form-header p {
+  font-size: 0.95rem;
+  color: #999999;
+}
+
+.login-form {
+  width: 100%;
+}
+
+/* Affichage des erreurs */
+.error-message {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+  border-left: 4px solid #ef4444;
+  padding: 15px 18px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  animation: slide-down 0.4s ease-out;
+}
+
+.error-message p {
+  color: #dc2626;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Groupes de formulaire */
+.form-group {
+  margin-bottom: 25px;
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.form-group:nth-child(4) {
+  animation-delay: 0.5s;
+}
+
+.form-group:nth-child(5) {
+  animation-delay: 0.6s;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+
+/* Wrapper pour les inputs */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border: 2px solid #e8ecf1;
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-wrapper:hover {
+  background: #f3f6f9;
+  border-color: #d4dce5;
+}
+
+.input-wrapper.focused {
+  background: #ffffff;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.input-icon {
+  color: #16a34a;
+  margin-right: 12px;
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+}
+
+.input-wrapper.focused .input-icon {
+  color: #16a34a;
+}
+
+/* Inputs */
+.input-wrapper input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: #1a1a1a;
+  font-weight: 500;
+  padding: 0;
+  font-family: inherit;
+}
+
+.input-wrapper input::placeholder {
+  color: #999999;
+}
+
+.input-wrapper input:-autofill {
+  -webkit-autofill-text-fill-color: #1a1a1a !important;
+  -webkit-autofill-box-shadow-color: rgba(22, 163, 74, 0.1) !important;
+}
+
+/* Bouton de soumission */
+.submit-button {
+  width: 100%;
+  padding: 14px 20px;
+  margin-top: 10px;
+  margin-bottom: 25px;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  animation: fade-in 0.8s ease-out 0.65s backwards;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(22, 163, 74, 0.3);
+}
+
+.submit-button:active:not(:disabled) {
+  transform: translateY(0px);
+}
+
+.submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loader {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Diviseur */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 30px 0;
+  font-size: 0.85rem;
+  color: #999999;
+  font-weight: 500;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(50% - 65px);
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e8ecf1);
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+  background: linear-gradient(to left, transparent, #e8ecf1);
+}
+
+.divider span {
+  padding: 0 15px;
+  background: white;
+  position: relative;
+  z-index: 2;
+}
+
+/* Identifiants de test */
+.test-credentials {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e8ecf1;
+  animation: fade-in 0.8s ease-out 0.75s backwards;
+}
+
+.cred-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cred-item small {
+  font-size: 0.75rem;
+  color: #999999;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cred-item code {
+  font-size: 0.85rem;
+  color: #16a34a;
+  font-weight: 600;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  word-break: break-all;
+}
+
+/* ============================================
+   ANIMATIONS GÉNÉRALES
+   ============================================ */
+
+@keyframes slide-right {
+  from {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .login-container {
+    max-width: 95%;
+    min-height: auto;
+  }
+
+  .login-left {
+    padding: 50px 40px;
+  }
+
+  .login-right {
+    padding: 50px 40px;
+  }
+
+  .welcome-text h2 {
+    font-size: 1.8rem;
+  }
+
+  .login-logo {
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 20px;
+  }
+
+  .login-container {
+    flex-direction: column;
+    max-width: 100%;
+    min-height: auto;
+    margin: 0;
+  }
+
+  .login-left {
+    padding: 40px 30px;
+    border-right: none;
+    border-bottom: 2px solid #e8f5e9;
+    min-height: auto;
+  }
+
+  .login-right {
+    padding: 40px 30px;
+  }
+
+  .logo-section {
+    margin-bottom: 30px;
+  }
+
+  .login-logo {
+    max-width: 180px;
+  }
+
+  .welcome-text h2 {
+    font-size: 1.5rem;
+  }
+
+  .welcome-text p {
+    font-size: 0.95rem;
+  }
+
+  .form-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .features-list {
+    gap: 15px;
+  }
+
+  .feature-item {
+    padding: 12px 15px;
+  }
+
+  .test-credentials {
+    grid-template-columns: 1fr;
+  }
+
+  .shape-1,
+  .shape-2,
+  .shape-3 {
+    opacity: 0.03;
+  }
+
+  .icon-trash,
+  .icon-leaf {
+    opacity: 0.05;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 10px;
+  }
+
+  .login-left {
+    padding: 30px 20px;
+  }
+
+  .login-right {
+    padding: 30px 20px;
+  }
+
+  .logo-section {
+    margin-bottom: 20px;
+  }
+
+  .login-logo {
+    max-width: 140px;
+  }
+
+  .welcome-text h2 {
+    font-size: 1.3rem;
+  }
+
+  .welcome-text p {
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+  }
+
+  .form-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .form-header p {
+    font-size: 0.85rem;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .input-wrapper {
+    padding: 10px 12px;
+  }
+
+  .input-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .submit-button {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+  }
+
+  .test-credentials {
+    padding: 15px;
+    font-size: 0.8rem;
+  }
+
+  .cred-item code {
+    font-size: 0.75rem;
+  }
+}

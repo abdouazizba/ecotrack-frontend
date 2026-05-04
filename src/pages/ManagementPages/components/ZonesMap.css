@@ -1,0 +1,173 @@
+/* Zones Map Section */
+.zones-map-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.zones-map-header {
+  margin-bottom: 24px;
+}
+
+.zones-map-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1a1a1a;
+}
+
+.zones-map-header p {
+  margin: 4px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Map Container (Leaflet) */
+.zones-map-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+  margin-bottom: 24px;
+}
+
+.map-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #999;
+  padding: 24px;
+}
+
+.map-empty p {
+  margin: 8px 0;
+}
+
+/* Leaflet custom styles */
+.leaflet-container {
+  font-family: inherit;
+  background: #e8f0fe;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 13px;
+}
+
+.custom-popup .popup-content {
+  padding: 12px;
+}
+
+.custom-popup .popup-content h4 {
+  margin: 0 0 8px 0;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.custom-popup .popup-content p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.custom-popup .popup-content strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Map Legend */
+.map-legend-detailed {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.map-legend-detailed h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Zone Details Panel */
+.zone-details-panel {
+  border-top: 2px solid #e0e0e0;
+  padding-top: 24px;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.details-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+.btn-close-details {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.btn-close-details:hover {
+  color: #1a1a1a;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.detail-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #1a1a1a;
+}
