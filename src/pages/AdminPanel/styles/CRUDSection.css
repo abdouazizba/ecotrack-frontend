@@ -390,6 +390,101 @@
 }
 
 /* ============================================
+   PAGINATION
+   ============================================ */
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: var(--color-bg-primary);
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light);
+  margin-top: 20px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.pagination-info p {
+  margin: 0;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-pagination {
+  padding: 8px 14px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  color: var(--color-text-primary);
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background: var(--gradient-primary);
+  color: white;
+  border-color: var(--color-emerald-600);
+  transform: translateY(-2px);
+}
+
+.btn-pagination:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-page {
+  min-width: 36px;
+  padding: 8px 10px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  color: var(--color-text-primary);
+}
+
+.btn-page:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-medium);
+}
+
+.btn-page.active {
+  background: var(--gradient-primary);
+  color: white;
+  border-color: var(--color-emerald-600);
+  font-weight: 700;
+}
+
+.pagination-ellipsis {
+  padding: 0 4px;
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 

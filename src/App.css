@@ -1,38 +1,107 @@
-.App {
-  text-align: center;
+/* Global Layout Variables */
+:root {
+  --sidebar-width: 280px;
+  --header-height: 0px;
+  --spacing-compact: 12px;
+  --spacing-normal: 16px;
+  --spacing-medium: 20px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Dashboard Layout Styles - Fixed Sidebar + Content */
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #f5f9f8 0%, #ffffff 100%);
+  font-family: var(--font-primary);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Sidebar Fixed */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: var(--sidebar-width);
+  z-index: 1000;
+  background: white;
+  border-right: 1px solid #e8ecf1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Main Content Area */
+.dashboard-main {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  overflow: hidden;
 }
 
-.App-link {
-  color: #61dafb;
+/* Content Scroll Area - Fluide */
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  background: linear-gradient(135deg, #f5f9f8 0%, #ffffff 100%);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.dashboard-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dashboard-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-content::-webkit-scrollbar-thumb {
+  background: #d4dce5;
+  border-radius: 4px;
+}
+
+.dashboard-content::-webkit-scrollbar-thumb:hover {
+  background: #bcc7d4;
+}
+
+/* Responsive - Tablet and below */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 250px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .dashboard-content {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0;
+  }
+
+  .dashboard-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .dashboard-content {
+    padding: 1rem;
+    gap: 1rem;
   }
 }

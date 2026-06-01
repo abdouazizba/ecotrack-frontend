@@ -6,6 +6,8 @@ import ContainersPage from './pages/ManagementPages/ContainersPage';
 import ZonesPage from './pages/ManagementPages/ZonesPage';
 import UsersPage from './pages/ManagementPages/UsersPage';
 import SignalementsPage from './pages/ManagementPages/SignalementsPage';
+import SignalementsAgentsPage from './pages/ManagementPages/SignalementsPage/SignalementsAgentsPage';
+import SignalementsCitoyensPage from './pages/ManagementPages/SignalementsPage/SignalementsCitoyensPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sidebar from './components/Sidebar';
 import useAuthStore from './store/authStore';
@@ -57,6 +59,8 @@ function App() {
           <Route path="/zones" element={<ZonesPage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/signalements" element={<SignalementsPage />} />
+          <Route path="/signalements/agents" element={<SignalementsAgentsPage />} />
+          <Route path="/signalements/citoyens" element={<SignalementsCitoyensPage />} />
         </Route>
         
         <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />

@@ -8,35 +8,42 @@
 
 export const transformZoneToBackend = (frontendData) => {
   const backendData = {
-    nom: frontendData.name,
+    nom: frontendData.nom || frontendData.name,
     code_zone: frontendData.code_zone || `ZONE-${Date.now()}`,
     description: frontendData.description,
     population_estimee: frontendData.population_estimee || 0,
     latitude: parseFloat(frontendData.latitude) || 0,
     longitude: parseFloat(frontendData.longitude) || 0,
-    is_active: frontendData.status !== 'inactive',
+    is_active: frontendData.is_active !== false,
   };
   console.log('🔄 transformZoneToBackend:', {
     input: frontendData,
     output: backendData,
-    latType: typeof backendData.latitude,
-    lngType: typeof backendData.longitude,
   });
   return backendData;
 };
 
 export const transformZoneToFrontend = (backendData) => {
-  return {
+  if (!backendData) {
+    console.error('❌ transformZoneToFrontend: backendData is null/undefined');
+    return null;
+  }
+  
+  const result = {
     id: backendData.id,
-    name: backendData.nom,
+    nom: backendData.nom || backendData.name,
     code_zone: backendData.code_zone,
     description: backendData.description,
     population_estimee: backendData.population_estimee || 0,
     latitude: backendData.latitude || 0,
     longitude: backendData.longitude || 0,
-    status: backendData.is_active ? 'active' : 'inactive',
-    created_at: backendData.createdAt,
+    is_active: backendData.is_active ?? true,
+    geometrie: backendData.geometrie,
+    created_at: backendData.createdAt || backendData.created_at,
   };
+  
+  console.log('✨ transformZoneToFrontend result:', result);
+  return result;
 };
 
 // ============================================
@@ -58,10 +65,18 @@ export const transformConteneurToBackend = (frontendData) => {
 };
 
 export const transformConteneurToFrontend = (backendData) => {
+  // Sécuriser les données en cas de structure inattendue
+  if (!backendData) {
+    console.error('🚨 transformConteneurToFrontend: backendData is null/undefined');
+    return {};
+  }
+
+  const containerId = backendData.id || backendData._id || 'unknown';
+  
   return {
-    id: backendData.id,
+    id: containerId,
     code_conteneur: backendData.code_conteneur,
-    name: backendData.code_conteneur || `Conteneur ${backendData.id.slice(0, 8)}`,
+    name: backendData.code_conteneur || `Conteneur ${(typeof containerId === 'string' ? containerId.slice(0, 8) : 'N/A')}`,
     type: backendData.type_conteneur,
     capacity: backendData.capacite,
     latitude: backendData.latitude,

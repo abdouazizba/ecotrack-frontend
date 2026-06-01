@@ -6,8 +6,7 @@ import {
   updateUser,
   deleteUser,
   changeUserRole,
-} from '../../../services/api';
-import '../styles/CRUDSection.css';
+} from '../../../../services/api';
 
 export default function UsersSection() {
   const [users, setUsers] = useState([]);
@@ -26,7 +25,6 @@ export default function UsersSection() {
     status: 'active',
   });
 
-  // Charger les utilisateurs
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -104,7 +102,6 @@ export default function UsersSection() {
 
   return (
     <div className="crud-section">
-      {/* Header */}
       <div className="section-header">
         <div>
           <h2>Gestion des Utilisateurs</h2>
@@ -122,7 +119,6 @@ export default function UsersSection() {
         </button>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="error-alert">
           <p>{error}</p>
@@ -132,7 +128,6 @@ export default function UsersSection() {
         </div>
       )}
 
-      {/* Form */}
       {showForm && (
         <div className="form-card">
           <div className="form-header">
@@ -248,46 +243,6 @@ export default function UsersSection() {
         </div>
       )}
 
-      {/* Role Change Modal */}
-      {showRoleModal && (
-        <div className="role-modal-overlay">
-          <div className="role-modal">
-            <h3>Changer le rôle</h3>
-            <p>Changez le rôle de {showRoleModal.firstName} {showRoleModal.lastName}</p>
-            
-            <div className="role-options">
-              <button
-                onClick={() => handleChangeRole(showRoleModal.id, 'agent')}
-                className={`role-option ${newRole === 'agent' ? 'selected' : ''}`}
-              >
-                <span className="role-icon">👤</span>
-                <strong>Agent</strong>
-                <small>Accès limité aux opérations</small>
-              </button>
-              
-              <button
-                onClick={() => handleChangeRole(showRoleModal.id, 'admin')}
-                className={`role-option ${newRole === 'admin' ? 'selected' : ''}`}
-              >
-                <span className="role-icon">👑</span>
-                <strong>Admin</strong>
-                <small>Accès complet aux paramètres</small>
-              </button>
-            </div>
-
-            <div className="modal-actions">
-              <button
-                onClick={() => setShowRoleModal(null)}
-                className="btn-cancel"
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Table */}
       {loading ? (
         <div className="loading-state">Chargement...</div>
       ) : users.length === 0 ? (
@@ -301,7 +256,6 @@ export default function UsersSection() {
               <tr>
                 <th>Nom</th>
                 <th>Email</th>
-                <th>Téléphone</th>
                 <th>Rôle</th>
                 <th>Statut</th>
                 <th>Actions</th>
@@ -314,36 +268,17 @@ export default function UsersSection() {
                     {user.firstName} {user.lastName}
                   </td>
                   <td>{user.email}</td>
-                  <td>{user.phone || '-'}</td>
                   <td>
-                    <span
-                      className={`badge badge-${
-                        user.role === 'admin' ? 'danger' : 'secondary'
-                      }`}
-                    >
+                    <span className={`badge badge-${user.role === 'admin' ? 'danger' : 'secondary'}`}>
                       {user.role === 'admin' ? '👑 Admin' : '👤 Agent'}
                     </span>
                   </td>
                   <td>
-                    <span
-                      className={`badge badge-${
-                        user.status === 'active' ? 'success' : 'warning'
-                      }`}
-                    >
+                    <span className={`badge badge-${user.status === 'active' ? 'success' : 'warning'}`}>
                       {user.status}
                     </span>
                   </td>
                   <td className="table-actions">
-                    <button
-                      onClick={() => {
-                        setShowRoleModal(user);
-                        setNewRole(user.role);
-                      }}
-                      className="btn-icon btn-role"
-                      title="Changer le rôle"
-                    >
-                      <Shield size={16} />
-                    </button>
                     <button
                       onClick={() => handleEdit(user)}
                       className="btn-icon btn-edit"
@@ -353,7 +288,7 @@ export default function UsersSection() {
                     </button>
                     <button
                       onClick={() => handleDelete(user.id)}
-                      className="btn-icon btn-delete"
+                      className="btn-icon btn-danger"
                       title="Supprimer"
                     >
                       <Trash2 size={16} />
@@ -365,107 +300,6 @@ export default function UsersSection() {
           </table>
         </div>
       )}
-
-      <style>{`
-        .role-modal-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 999;
-        }
-
-        .role-modal {
-          background: white;
-          border-radius: 12px;
-          padding: 30px;
-          max-width: 400px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-          animation: slide-down 0.3s ease-out;
-        }
-
-        .role-modal h3 {
-          font-size: 1.3rem;
-          font-weight: 700;
-          margin: 0 0 10px 0;
-          color: #1a1a1a;
-        }
-
-        .role-modal p {
-          color: #666;
-          margin: 0 0 25px 0;
-        }
-
-        .role-options {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .role-option {
-          padding: 15px;
-          border: 2px solid #e8ecf1;
-          border-radius: 8px;
-          background: white;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-align: left;
-        }
-
-        .role-option:hover {
-          border-color: #16a34a;
-          background: rgba(22, 163, 74, 0.05);
-        }
-
-        .role-option.selected {
-          border-color: #16a34a;
-          background: rgba(22, 163, 74, 0.1);
-        }
-
-        .role-icon {
-          font-size: 1.5rem;
-          margin-right: 10px;
-        }
-
-        .role-option strong {
-          display: block;
-          color: #1a1a1a;
-          margin-bottom: 4px;
-        }
-
-        .role-option small {
-          color: #999;
-          font-size: 0.8rem;
-        }
-
-        .modal-actions {
-          display: flex;
-          gap: 12px;
-        }
-
-        .btn-role {
-          color: #9333ea;
-          border-color: #9333ea;
-        }
-
-        .btn-role:hover {
-          background: rgba(147, 51, 234, 0.05);
-        }
-
-        @keyframes slide-down {
-          from {
-            transform: translateY(-20px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   );
 }

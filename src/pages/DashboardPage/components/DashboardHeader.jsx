@@ -1,22 +1,24 @@
 import React from 'react';
 
-export default function DashboardHeader({ user }) {
-  const formatDate = (date) => {
-    return date.toLocaleDateString('fr-FR', { 
-      weekday: 'long', 
-      month: 'long', 
-      day: 'numeric' 
-    });
+export default function DashboardHeader({ user, title = 'Tableau de Bord' }) {
+  const getInitials = (email) => {
+    return email?.charAt(0).toUpperCase() || 'U';
   };
 
   return (
     <div className="dashboard-header">
-      <div>
-        <h1 className="dashboard-title">Tableau de Bord</h1>
-        <p className="dashboard-subtitle">Bienvenue {user?.email} 👋</p>
+      <div className="dashboard-header-title">
+        <h1>{title}</h1>
       </div>
-      <div className="dashboard-date">
-        {formatDate(new Date())}
+
+      <div className="dashboard-header-user">
+        <div className="user-greeting">
+          <span className="user-greeting-name">Bienvenue {user?.email}</span>
+          <span className="user-greeting-role">👋</span>
+        </div>
+        <div className="user-avatar">
+          {getInitials(user?.email)}
+        </div>
       </div>
     </div>
   );
