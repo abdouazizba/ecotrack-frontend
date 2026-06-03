@@ -12,29 +12,15 @@ const useAuthStore = create(
       error: null,
 
       login: (user, token) => {
-        console.log('💾 SAVING TOKEN TO COOKIES:', {
-          token_exists: !!token,
-          token_length: token ? token.length : 0,
-          token_preview: token ? token.slice(0, 30) + '...' : 'NONE',
-        });
-        
         Cookies.set('authToken', token, { expires: 7 });
-        
-        // Vérifier immédiatement
-        const saved = Cookies.get('authToken');
-        console.log('✅ VERIFY SAVED:', {
-          saved_exists: !!saved,
-          matches: saved === token,
-        });
-        
         set({
           user: {
             id: user.id,
             email: user.email,
-            firstName: user.firstName || user.first_name || '',
-            lastName: user.lastName || user.last_name || '',
-            role: user.role || 'agent',
-            phone: user.phone,
+            firstName: user.prenom || user.firstName || user.first_name || '',
+            lastName: user.nom || user.lastName || user.last_name || '',
+            role: user.role || null,
+            phone: user.phone || user.telephone,
             status: user.status,
           },
           token,
@@ -42,13 +28,12 @@ const useAuthStore = create(
         });
       },
 
-      // Mettre à jour le profil après avoir récupéré les infos complètes
       updateUserProfile: (userData) => {
         set((state) => ({
           user: state.user ? {
             ...state.user,
             ...userData,
-            role: userData.role || state.user.role || 'agent',
+            role: userData.role || state.user.role || null,
           } : null,
         }));
       },

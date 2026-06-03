@@ -1,7 +1,7 @@
 /* Global Layout Variables */
 :root {
-  --sidebar-width: 280px;
-  --header-height: 0px;
+  --sidebar-width: 300px;
+  --navbar-height: 70px;
   --spacing-compact: 12px;
   --spacing-normal: 16px;
   --spacing-medium: 20px;
@@ -10,30 +10,18 @@
 /* Dashboard Layout Styles - Fixed Sidebar + Content */
 .dashboard-container {
   display: flex;
-  height: 100vh;
+  height: calc(100vh - var(--navbar-height));
+  margin-top: var(--navbar-height);
   width: 100%;
   background: linear-gradient(135deg, #f5f9f8 0%, #ffffff 100%);
   font-family: var(--font-primary);
-}
-
-/* Sidebar Fixed */
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  width: var(--sidebar-width);
-  z-index: 1000;
-  background: white;
-  border-right: 1px solid #e8ecf1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* Main Content Area */
 .dashboard-main {
   margin-left: var(--sidebar-width);
   width: calc(100% - var(--sidebar-width));
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;

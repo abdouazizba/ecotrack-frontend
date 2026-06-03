@@ -1,114 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import EchartsStatCard from '../../../components/EchartsStatCard';
-import { getContainers, getSignalements, getZones } from '../../../services/api';
+import React, { useMemo } from 'react';
+import EchartsStatCard from '../../../components/charts/EchartsStatCard';
 
-export default function StatsSection() {
-  const [stats, setStats] = useState({
-    containers: 0,
-    zones: 0,
-    signalements: 0,
-    fillRate: 0,
-    criticalContainers: 0,
-    activeZones: 0,
-    openAlerts: 0,
-    loading: true,
-    error: null,
-  });
+export default function StatsSection({ containers, signalements, zones, agents, loading }) {
+  const stats = useMemo(() => {
+    // ── conteneurs ──
+    const totalContainers = containers.length;
+    const validFill = containers.filter((c) => c.fillLevel != null);
+    const avgFillRate = validFill.length
+      ? Math.round(validFill.reduce((s, c) => s + (c.fillLevel || 0), 0) / validFill.length)
+      : 0;
+    const criticalContainers = containers.filter((c) => (c.fillLevel || 0) > 80).length;
+    const maintenanceContainers = containers.filter(
+      (c) => c.status === 'maintenance' || c.status === 'retire'
+    ).length;
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+    // ── zones ──
+    const totalZones = zones.length;
+    const activeZones = zones.filter((z) => z.is_active === true || z.is_active === 1).length;
 
-  const fetchStats = async () => {
-    try {
-      setStats(prev => ({ ...prev, loading: true }));
+    // ── signalements ──
+    const totalSig = signalements.length;
+    const pendingSig  = signalements.filter((s) => s.status === 'pending').length;
+    const inProgressSig = signalements.filter((s) => s.status === 'in_progress').length;
+    const closedSig   = signalements.filter((s) => s.status === 'closed').length;
+    const tauxResolution = totalSig > 0 ? Math.round((closedSig / totalSig) * 100) : 0;
 
-      const containersData = await getContainers();
-      const signalementsData = await getSignalements();
-      const zonesData = await getZones();
+    // ── agents ──
+    const activeAgents = agents.filter(
+      (a) => a.status === 'active' || a.is_active === true || a.is_active === 1
+    ).length;
 
-      const containers = Array.isArray(containersData) ? containersData : containersData?.data || [];
-      const signalements = Array.isArray(signalementsData) ? signalementsData : signalementsData?.data || [];
-      const zones = Array.isArray(zonesData) ? zonesData : zonesData?.data || [];
+    return {
+      totalContainers, avgFillRate, criticalContainers, maintenanceContainers,
+      totalZones, activeZones,
+      pendingSig, inProgressSig, closedSig, tauxResolution,
+      activeAgents,
+    };
+  }, [containers, signalements, zones, agents]);
 
-      const validContainers = containers.filter(c => c.fillLevel !== null && c.fillLevel !== undefined);
-      const avgFillRate = validContainers.length > 0 
-        ? Math.round(validContainers.reduce((sum, c) => sum + (c.fillLevel || 0), 0) / validContainers.length)
-        : 0;
-
-      const criticalContainers = containers.filter(c => (c.fillLevel || 0) > 80).length;
-      const activeZones = zones.filter(z => z.status === 'active').length;
-      const openSignalements = signalements.filter(s => 
-        s.status === 'OUVERT' || s.status === 'pending' || s.status === 'open'
-      ).length;
-
-      setStats({
-        containers: containers.length,
-        zones: zones.length,
-        signalements: openSignalements,
-        fillRate: avgFillRate,
-        criticalContainers: criticalContainers,
-        activeZones: activeZones,
-        openAlerts: Math.max(criticalContainers, openSignalements),
-        loading: false,
-        error: null,
-      });
-    } catch (err) {
-      console.error('❌ Error fetching stats:', err.message);
-      setStats(prev => ({
-        ...prev,
-        loading: false,
-        error: `Erreur: ${err.message}`,
-      }));
-    }
-  };
+  if (loading) {
+    return (
+      <div className="stats-grid">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="echarts-stat-card stat-skeleton" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="stats-grid">
-      {stats.error && (
-        <div style={{
-          gridColumn: '1 / -1',
-          padding: '16px',
-          backgroundColor: '#fee2e2',
-          borderLeft: '4px solid #ef4444',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          color: '#991b1b',
-          fontWeight: 'bold'
-        }}>
-          ❌ {stats.error}
-        </div>
-      )}
+      {/* ── ligne 1 : conteneurs ── */}
       <EchartsStatCard
         title="Conteneurs"
-        value={stats.containers.toString()}
+        value={stats.totalContainers.toString()}
         type="bar"
         color="#0284c7"
-        trend={{ direction: 'up', value: 2 }}
         subtitle="Total en service"
       />
       <EchartsStatCard
-        title="Zones"
-        value={stats.zones.toString()}
-        type="line"
-        color="#16a34a"
-        trend={{ direction: 'up', value: 1 }}
-        subtitle={`${stats.activeZones} actives`}
-      />
-      <EchartsStatCard
-        title="Signalements"
-        value={stats.signalements.toString()}
-        type="bar"
-        color="#f59e0b"
-        trend={{ direction: 'down', value: 3 }}
-        subtitle="À traiter"
-      />
-      <EchartsStatCard
         title="Remplissage Moyen"
-        value={stats.fillRate.toString()}
+        value={stats.avgFillRate.toString()}
         type="gauge"
-        color={stats.fillRate > 80 ? '#ef4444' : '#16a34a'}
-        trend={{ direction: stats.fillRate > 50 ? 'up' : 'down', value: Math.abs(stats.fillRate - 50) }}
+        inverted
+        color={stats.avgFillRate > 80 ? '#ef4444' : stats.avgFillRate > 50 ? '#f59e0b' : '#10b981'}
         subtitle="Tous conteneurs"
       />
       <EchartsStatCard
@@ -116,16 +71,60 @@ export default function StatsSection() {
         value={stats.criticalContainers.toString()}
         type="pie"
         color="#ef4444"
-        trend={{ direction: 'down', value: 15 }}
-        subtitle="Remplissage > 80%"
+        subtitle="Remplissage > 80 %"
       />
       <EchartsStatCard
-        title="Alertes Ouvertes"
-        value={stats.openAlerts.toString()}
+        title="En Maintenance"
+        value={stats.maintenanceContainers.toString()}
+        type="bar"
+        color="#8b5cf6"
+        subtitle="Hors service / retirés"
+      />
+
+      {/* ── ligne 2 : zones & agents ── */}
+      <EchartsStatCard
+        title="Zones"
+        value={stats.totalZones.toString()}
         type="line"
+        color="#16a34a"
+        subtitle={`${stats.activeZones} actives`}
+      />
+      <EchartsStatCard
+        title="Agents Actifs"
+        value={stats.activeAgents.toString()}
+        type="bar"
+        color="#0ea5e9"
+        subtitle="Comptes activés"
+      />
+
+      {/* ── ligne 3 : signalements ── */}
+      <EchartsStatCard
+        title="Signalements Ouverts"
+        value={stats.pendingSig.toString()}
+        type="bar"
         color="#f59e0b"
-        trend={{ direction: 'down', value: 25 }}
-        subtitle="En attente de résolution"
+        subtitle="En attente de traitement"
+      />
+      <EchartsStatCard
+        title="En Cours"
+        value={stats.inProgressSig.toString()}
+        type="line"
+        color="#3b82f6"
+        subtitle="Traitement en cours"
+      />
+      <EchartsStatCard
+        title="Taux de Résolution"
+        value={stats.tauxResolution.toString()}
+        type="gauge"
+        color={stats.tauxResolution >= 70 ? '#10b981' : stats.tauxResolution >= 40 ? '#f59e0b' : '#ef4444'}
+        subtitle={`${stats.closedSig ?? ''} signalement(s) résolus`}
+      />
+      <EchartsStatCard
+        title="Résolus"
+        value={(stats.closedSig ?? 0).toString()}
+        type="pie"
+        color="#10b981"
+        subtitle="Signalements fermés"
       />
     </div>
   );

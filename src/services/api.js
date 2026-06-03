@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { 
+import {
   transformZonesArrayToFrontend,
   transformConteneurArrayToFrontend,
   transformSignalementsArrayToFrontend,
@@ -10,27 +10,30 @@ import {
   transformZoneToFrontend,
   transformSignalementToBackend,
   transformSignalementToFrontend,
+  transformUserToFrontend,
+  transformUserToBackend,
+  transformUsersArrayToFrontend,
+  transformTourneeToFrontend,
+  transformTourneeToBackend,
+  transformTourneesArrayToFrontend,
+  transformCapteurToFrontend,
+  transformCapteurToBackend,
+  transformCapteursArrayToFrontend,
 } from './transformers';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Add token to every request
 api.interceptors.request.use((config) => {
   const token = Cookies.get('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Response interceptor for better error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -45,22 +48,48 @@ api.interceptors.response.use(
   }
 );
 
+// ============================================
+// HELPERS
+// ============================================
+
+const extractArray = (responseData, key) => {
+  if (Array.isArray(responseData)) return responseData;
+  if (responseData?.[key] && Array.isArray(responseData[key])) return responseData[key];
+  if (responseData?.data && Array.isArray(responseData.data)) return responseData.data;
+  return [];
+};
+
+const extractSingle = (responseData, key) => {
+  if (responseData?.data) return responseData.data;
+  if (responseData?.[key]) return responseData[key];
+  return responseData;
+};
+
+// ============================================
+// AUTH
+// ============================================
+
 export const loginUser = async (email, password) => {
   try {
     const response = await api.post('/auth/login', { email, password });
     const data = response.data;
 
-    console.log('✓ Login response received');
+    // DEBUG TEMPORAIRE — à retirer après confirmation de la structure réelle
+    console.log('=== LOGIN RAW RESPONSE ===', JSON.stringify(data, null, 2));
 
-    // Structure correcte: tokens.accessToken
-    if (!data.data || !data.tokens?.accessToken) {
+    // Essaie toutes les structures connues
+    const user = data.user || data.data?.user || data.data;
+    const accessToken = data.accessToken || data.tokens?.accessToken || data.access_token || data.token;
+
+    if (!user || !accessToken) {
+      console.error('Structure reçue:', Object.keys(data));
       throw new Error('Invalid response structure');
     }
 
     return {
-      user: data.data,  // { id, email }
-      accessToken: data.tokens.accessToken,
-      refreshToken: data.tokens.refreshToken,
+      user,
+      accessToken,
+      refreshToken: data.refreshToken || data.tokens?.refreshToken || data.refresh_token,
     };
   } catch (error) {
     console.error('Login error:', error.message);
@@ -68,11 +97,11 @@ export const loginUser = async (email, password) => {
   }
 };
 
-// ✅ Récupère le profil complet avec le rôle
 export const getCurrentUserProfile = async () => {
   try {
     const response = await api.get('/users/me');
-    return response.data.user || response.data.data;
+    const raw = response.data.user || response.data.data || response.data;
+    return transformUserToFrontend(raw);
   } catch (error) {
     console.error('Error fetching user profile:', error.message);
     throw error;
@@ -95,21 +124,7 @@ export const verifyToken = async () => {
 export const getContainers = async (filters = {}) => {
   try {
     const response = await api.get('/conteneurs', { params: filters });
-    
-    // Essayer toutes les structures possibles
-    let data = [];
-    if (Array.isArray(response.data)) {
-      data = response.data;
-    } else if (response.data?.conteneurs && Array.isArray(response.data.conteneurs)) {
-      data = response.data.conteneurs;
-    } else if (response.data?.data && Array.isArray(response.data.data)) {
-      data = response.data.data;
-    } else if (response.data?.success && Array.isArray(response.data.data)) {
-      data = response.data.data;
-    }
-    
-    const transformed = transformConteneurArrayToFrontend(data);
-    return transformed;
+    return transformConteneurArrayToFrontend(extractArray(response.data, 'conteneurs'));
   } catch (err) {
     console.error('Error fetching containers:', err.message);
     throw err;
@@ -119,19 +134,7 @@ export const getContainers = async (filters = {}) => {
 export const getContainer = async (id) => {
   try {
     const response = await api.get(`/conteneurs/${id}`);
-    
-    // Gérer différentes structures possibles de réponse
-    let containerData = response.data;
-    
-    // Si response.data a une propriété 'data' ou 'conteneur'
-    if (response.data?.data) {
-      containerData = response.data.data;
-    } else if (response.data?.conteneur) {
-      containerData = response.data.conteneur;
-    }
-    
-    const transformed = transformConteneurToFrontend(containerData);
-    return transformed;
+    return transformConteneurToFrontend(extractSingle(response.data, 'conteneur'));
   } catch (err) {
     console.error('Error fetching container:', err.message);
     throw err;
@@ -141,13 +144,13 @@ export const getContainer = async (id) => {
 export const createContainer = async (data) => {
   const backendData = transformConteneurToBackend(data);
   const response = await api.post('/conteneurs', backendData);
-  return transformConteneurToFrontend(response.data);
+  return transformConteneurToFrontend(extractSingle(response.data, 'conteneur'));
 };
 
 export const updateContainer = async (id, data) => {
   const backendData = transformConteneurToBackend(data);
   const response = await api.put(`/conteneurs/${id}`, backendData);
-  return transformConteneurToFrontend(response.data);
+  return transformConteneurToFrontend(extractSingle(response.data, 'conteneur'));
 };
 
 export const deleteContainer = async (id) => {
@@ -161,18 +164,7 @@ export const deleteContainer = async (id) => {
 export const getZones = async (filters = {}) => {
   try {
     const response = await api.get('/zones', { params: filters });
-    
-    let data = [];
-    if (Array.isArray(response.data)) {
-      data = response.data;
-    } else if (response.data?.zones && Array.isArray(response.data.zones)) {
-      data = response.data.zones;
-    } else if (response.data?.data && Array.isArray(response.data.data)) {
-      data = response.data.data;
-    }
-    
-    const transformed = transformZonesArrayToFrontend(data);
-    return transformed;
+    return transformZonesArrayToFrontend(extractArray(response.data, 'zones'));
   } catch (err) {
     console.error('Error fetching zones:', err.message);
     throw err;
@@ -182,17 +174,7 @@ export const getZones = async (filters = {}) => {
 export const getZone = async (id) => {
   try {
     const response = await api.get(`/zones/${id}`);
-    
-    // Gérer différentes structures possibles
-    let zoneData = response.data;
-    if (response.data?.data) {
-      zoneData = response.data.data;
-    } else if (response.data?.zone) {
-      zoneData = response.data.zone;
-    }
-    
-    const transformed = transformZoneToFrontend(zoneData);
-    return transformed;
+    return transformZoneToFrontend(extractSingle(response.data, 'zone'));
   } catch (err) {
     console.error('Error fetching zone:', err.message);
     throw err;
@@ -201,43 +183,31 @@ export const getZone = async (id) => {
 
 export const createZone = async (data) => {
   try {
-    console.log('➕ Creating zone with data:', data);
     const backendData = transformZoneToBackend(data);
-    console.log('   Backend format:', backendData);
     const response = await api.post('/zones', backendData);
-    console.log('   Response:', response.data);
-    const transformed = transformZoneToFrontend(response.data);
-    console.log('✅ Zone created:', transformed);
-    return transformed;
+    return transformZoneToFrontend(extractSingle(response.data, 'zone'));
   } catch (err) {
-    console.error('❌ Error creating zone:', err.message);
+    console.error('Error creating zone:', err.message);
     throw err;
   }
 };
 
 export const updateZone = async (id, data) => {
   try {
-    console.log('✏️ Updating zone:', id, data);
     const backendData = transformZoneToBackend(data);
-    console.log('   Backend format:', backendData);
     const response = await api.put(`/zones/${id}`, backendData);
-    console.log('   Response:', response.data);
-    const transformed = transformZoneToFrontend(response.data);
-    console.log('✅ Zone updated:', transformed);
-    return transformed;
+    return transformZoneToFrontend(extractSingle(response.data, 'zone'));
   } catch (err) {
-    console.error('❌ Error updating zone:', err.message);
+    console.error('Error updating zone:', err.message);
     throw err;
   }
 };
 
 export const deleteZone = async (id) => {
   try {
-    console.log('🗑️ Deleting zone:', id);
     await api.delete(`/zones/${id}`);
-    console.log('✅ Zone deleted');
   } catch (err) {
-    console.error('❌ Error deleting zone:', err.message);
+    console.error('Error deleting zone:', err.message);
     throw err;
   }
 };
@@ -249,20 +219,7 @@ export const deleteZone = async (id) => {
 export const getSignalements = async (filters = {}) => {
   try {
     const response = await api.get('/signalements', { params: filters });
-    
-    let data = [];
-    if (Array.isArray(response.data)) {
-      data = response.data;
-    } else if (response.data?.signalements && Array.isArray(response.data.signalements)) {
-      data = response.data.signalements;
-    } else if (response.data?.data && Array.isArray(response.data.data)) {
-      data = response.data.data;
-    } else if (response.data?.success && Array.isArray(response.data.data)) {
-      data = response.data.data;
-    }
-    
-    const transformed = transformSignalementsArrayToFrontend(data);
-    return transformed;
+    return transformSignalementsArrayToFrontend(extractArray(response.data, 'signalements'));
   } catch (err) {
     console.error('Error fetching signalements:', err.message);
     throw err;
@@ -271,19 +228,42 @@ export const getSignalements = async (filters = {}) => {
 
 export const getSignalement = async (id) => {
   const response = await api.get(`/signalements/${id}`);
-  return transformSignalementToFrontend(response.data);
+  return transformSignalementToFrontend(extractSingle(response.data, 'signalement'));
 };
 
 export const createSignalement = async (data) => {
   const backendData = transformSignalementToBackend(data);
   const response = await api.post('/signalements', backendData);
-  return transformSignalementToFrontend(response.data);
+  return transformSignalementToFrontend(extractSingle(response.data, 'signalement'));
 };
 
 export const updateSignalement = async (id, data) => {
   const backendData = transformSignalementToBackend(data);
   const response = await api.put(`/signalements/${id}`, backendData);
-  return transformSignalementToFrontend(response.data);
+  return transformSignalementToFrontend(extractSingle(response.data, 'signalement'));
+};
+
+// Changement de statut via les action endpoints dédiés du backend
+// POST /signalements/{id}/in-progress → EN_COURS_DE_TRAITEMENT
+// POST /signalements/{id}/close       → FERMÉ
+// POST /signalements/{id}/reject      → REJETÉ
+// PUT  /signalements/{id}             → OUVERT (retour en attente)
+export const patchSignalement = async (id, partialData) => {
+  const { status } = partialData;
+  let response;
+
+  if (status === 'in_progress') {
+    response = await api.post(`/signalements/${id}/in-progress`);
+  } else if (status === 'closed') {
+    response = await api.post(`/signalements/${id}/close`);
+  } else if (status === 'rejected') {
+    response = await api.post(`/signalements/${id}/reject`);
+  } else {
+    // pending (OUVERT) — réouverture via PUT
+    response = await api.put(`/signalements/${id}`, { statut: 'OUVERT' });
+  }
+
+  return transformSignalementToFrontend(extractSingle(response.data, 'signalement'));
 };
 
 export const deleteSignalement = async (id) => {
@@ -291,49 +271,189 @@ export const deleteSignalement = async (id) => {
 };
 
 // ============================================
-// USERS & AGENTS - CRUD Operations & Role Management
+// USERS & AGENTS - CRUD Operations
 // ============================================
 
 export const getUsers = async (filters = {}) => {
-  const response = await api.get('/users', { params: filters });
-  return response.data;
+  try {
+    const response = await api.get('/users', { params: { limit: 1000, ...filters } });
+    return transformUsersArrayToFrontend(extractArray(response.data, 'users'));
+  } catch (err) {
+    console.error('Error fetching users:', err.message);
+    throw err;
+  }
 };
 
 export const getUser = async (id) => {
-  const response = await api.get(`/users/${id}`);
-  return response.data;
+  try {
+    const response = await api.get(`/users/${id}`);
+    return transformUserToFrontend(extractSingle(response.data, 'user'));
+  } catch (err) {
+    console.error('Error fetching user:', err.message);
+    throw err;
+  }
 };
 
 export const createUser = async (data) => {
-  const response = await api.post('/users', data);
-  return response.data;
+  try {
+    const backendData = transformUserToBackend(data);
+    const response = await api.post('/users', backendData);
+    return transformUserToFrontend(extractSingle(response.data, 'user'));
+  } catch (err) {
+    console.error('Error creating user:', err.message);
+    throw err;
+  }
 };
 
 export const updateUser = async (id, data) => {
-  const response = await api.put(`/users/${id}`, data);
-  return response.data;
+  try {
+    const backendData = transformUserToBackend(data);
+    const response = await api.put(`/users/${id}`, backendData);
+    return transformUserToFrontend(extractSingle(response.data, 'user'));
+  } catch (err) {
+    console.error('Error updating user:', err.message);
+    throw err;
+  }
 };
 
 export const deleteUser = async (id) => {
   await api.delete(`/users/${id}`);
 };
 
-// Change user role (Admin/Agent)
 export const changeUserRole = async (id, role) => {
-  const response = await api.patch(`/users/${id}/role`, { role });
+  const response = await api.put(`/users/${id}/role`, { role });
   return response.data;
 };
 
-// Get agents only
 export const getAgents = async () => {
   const response = await api.get('/users', { params: { role: 'agent' } });
-  return response.data;
+  return transformUsersArrayToFrontend(extractArray(response.data, 'users'));
 };
 
-// Get admins only
 export const getAdmins = async () => {
   const response = await api.get('/users', { params: { role: 'admin' } });
-  return response.data;
+  return transformUsersArrayToFrontend(extractArray(response.data, 'users'));
+};
+
+// ============================================
+// TOURNÉES - CRUD Operations
+// ============================================
+
+export const getTournees = async (filters = {}) => {
+  try {
+    const response = await api.get('/tournees', { params: filters });
+    return transformTourneesArrayToFrontend(extractArray(response.data, 'tournees'));
+  } catch (err) {
+    console.error('Error fetching tournees:', err.message);
+    throw err;
+  }
+};
+
+export const getTournee = async (id) => {
+  try {
+    const response = await api.get(`/tournees/${id}`);
+    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
+  } catch (err) {
+    console.error('Error fetching tournee:', err.message);
+    throw err;
+  }
+};
+
+export const createTournee = async (data) => {
+  try {
+    const response = await api.post('/tournees', transformTourneeToBackend(data));
+    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
+  } catch (err) {
+    console.error('Error creating tournee:', err.message);
+    throw err;
+  }
+};
+
+export const updateTournee = async (id, data) => {
+  try {
+    const response = await api.put(`/tournees/${id}`, transformTourneeToBackend(data));
+    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
+  } catch (err) {
+    console.error('Error updating tournee:', err.message);
+    throw err;
+  }
+};
+
+export const deleteTournee = async (id) => {
+  try {
+    await api.delete(`/tournees/${id}`);
+  } catch (err) {
+    console.error('Error deleting tournee:', err.message);
+    throw err;
+  }
+};
+
+export const addSignalementToTournee = async (tourneeId, signalementIds) => {
+  try {
+    const response = await api.post(`/tournees/${tourneeId}/signalements`, {
+      signalement_ids: signalementIds,
+    });
+    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
+  } catch (err) {
+    console.error('Error adding signalements to tournee:', err.message);
+    throw err;
+  }
+};
+
+export const updateTourneeStatus = async (id, status) => {
+  const STATUT = { pending: 'PLANIFIÉE', in_progress: 'EN_COURS', done: 'TERMINÉE', cancelled: 'ANNULÉE' };
+  const statut = STATUT[status] || status;
+  try {
+    const response = await api.patch(`/tournees/${id}/statut`, { statut });
+    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
+  } catch (err) {
+    // Fallback: PUT classique
+    const response = await api.put(`/tournees/${id}`, { statut });
+    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
+  }
+};
+
+// ============================================
+// CAPTEURS - CRUD + assign
+// ============================================
+
+export const getCapteurs = async (filters = {}) => {
+  try {
+    const response = await api.get('/capteurs', { params: filters });
+    return transformCapteursArrayToFrontend(extractArray(response.data, 'capteurs'));
+  } catch (err) {
+    console.error('Error fetching capteurs:', err.message);
+    throw err;
+  }
+};
+
+export const getCapteur = async (id) => {
+  const response = await api.get(`/capteurs/${id}`);
+  return transformCapteurToFrontend(extractSingle(response.data, 'capteur'));
+};
+
+export const createCapteur = async (data) => {
+  const response = await api.post('/capteurs', transformCapteurToBackend(data));
+  return transformCapteurToFrontend(extractSingle(response.data, 'capteur'));
+};
+
+export const updateCapteur = async (id, data) => {
+  const response = await api.put(`/capteurs/${id}`, transformCapteurToBackend(data));
+  return transformCapteurToFrontend(extractSingle(response.data, 'capteur'));
+};
+
+export const deleteCapteur = async (id) => {
+  await api.delete(`/capteurs/${id}`);
+};
+
+export const assignCapteurToConteneur = async (id, id_conteneur) => {
+  const response = await api.patch(`/capteurs/${id}/conteneur`, { id_conteneur });
+  return transformCapteurToFrontend(extractSingle(response.data, 'capteur'));
+};
+
+export const updateCapteurBatterie = async (id, batterie) => {
+  const response = await api.patch(`/capteurs/${id}/batterie`, { batterie });
+  return transformCapteurToFrontend(extractSingle(response.data, 'capteur'));
 };
 
 export default api;

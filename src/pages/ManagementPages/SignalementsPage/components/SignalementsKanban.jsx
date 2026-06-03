@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { getSignalements, updateSignalement, deleteSignalement } from '../../../../services/api';
+import { getSignalements, patchSignalement, deleteSignalement } from '../../../../services/api';
 import { Edit2, Trash2, Eye, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import './SignalementsKanban.css';
 
 const STATUSES = [
   { id: 'pending', label: 'En attente', color: '#ea580c', icon: AlertCircle },
   { id: 'in_progress', label: 'En cours', color: '#f59e0b', icon: Clock },
-  { id: 'resolved', label: 'Résolu', color: '#10b981', icon: CheckCircle },
+  { id: 'closed', label: 'Clôturé', color: '#10b981', icon: CheckCircle },
 ];
 
 const SOURCES = {
@@ -59,7 +59,7 @@ export default function SignalementsKanban({ initialSource = 'all', title = 'Ges
     });
     
     filteredSignalements.forEach(sig => {
-      const status = sig.etat || sig.status || 'pending';
+      const status = sig.status || 'pending';
       if (!map[status]) map[status] = [];
       map[status].push(sig);
     });
@@ -69,7 +69,7 @@ export default function SignalementsKanban({ initialSource = 'all', title = 'Ges
 
   const handleStatusChange = useCallback(async (signalementId, newStatus) => {
     try {
-      await updateSignalement(signalementId, { etat: newStatus });
+      await patchSignalement(signalementId, { status: newStatus });
       await loadSignalements();
     } catch (err) {
       setError('Erreur lors de la mise à jour');
@@ -240,10 +240,10 @@ function SignalementCard({ signalement, status, onStatusChange, onDelete, onView
 
       <div className="card-footer">
         <div className="status-buttons">
-          {['pending', 'in_progress', 'resolved'].map(statusId => (
+          {['pending', 'in_progress', 'closed'].map(statusId => (
             <button
               key={statusId}
-              className={`status-btn ${signalement.etat === statusId || signalement.status === statusId ? 'active' : ''}`}
+              className={`status-btn ${signalement.status === statusId ? 'active' : ''}`}
               onClick={() => onStatusChange(signalement.id, statusId)}
               title={`Marquer comme ${STATUSES.find(s => s.id === statusId)?.label}`}
             >
@@ -285,7 +285,7 @@ function SignalementModal({ signalement, onClose, onDelete }) {
             </div>
             <div className="detail-item">
               <span className="label">Etat :</span>
-              <span>{signalement.etat || signalement.status || 'N/A'}</span>
+              <span>{signalement.status || 'N/A'}</span>
             </div>
             <div className="detail-item">
               <span className="label">Date :</span>

@@ -11,7 +11,7 @@ import './LoginPage.css';
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const navigate = useNavigate();
   const { login, updateUserProfile } = useAuthStore();
 
@@ -20,60 +20,26 @@ export default function LoginPage() {
     setError('');
 
     try {
-      console.log('Step 1️⃣: Logging in with email/password...');
-      
-      // Étape 1: Login pour obtenir les tokens
       const loginResult = await loginUser(email, password);
-      
+
       if (!loginResult.user || !loginResult.accessToken) {
         throw new Error('Données invalides reçues du serveur');
       }
 
-      console.log('Step 2️⃣: Saving token to auth store...');
-      
-      // Sauvegarder le token d'abord
       login(loginResult.user, loginResult.accessToken);
 
-      console.log('Step 3️⃣: FETCHING COMPLETE USER PROFILE (WITH ROLE)...');
-      
-      // Étape 3: C'EST OBLIGATOIRE de récupérer le profil pour avoir le rôle
-      let fullProfile = null;
       try {
-        fullProfile = await getCurrentUserProfile();
-        console.log('✅ Step 4️⃣: User profile received:', fullProfile);
-        
+        const fullProfile = await getCurrentUserProfile();
         if (fullProfile) {
-          console.log('👤 User info:', {
-            id: fullProfile.id,
-            email: fullProfile.email,
-            firstName: fullProfile.firstName,
-            lastName: fullProfile.lastName,
-            role: fullProfile.role,
-          });
-          
-          // Mettre à jour le store avec les infos complètes
           updateUserProfile(fullProfile);
         }
       } catch (err) {
-        console.error('FAILED TO FETCH PROFILE:', err.message);
-        console.log('Make sure:');
-        console.log('   1. Backend is running');
-        console.log('   2. GET /users/me endpoint exists');
-        console.log('   3. Token is valid');
-        
-        // Pour maintenant, on continue avec le rôle par défaut
-        console.warn('⚠️ Using default role (agent) - Update manually');
+        console.error('Failed to fetch user profile:', err.message);
       }
 
-      console.log('Step 5️⃣: Redirecting to dashboard...');
-      
-      // Étape 4: Redirection
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 300);
-      
+      setTimeout(() => navigate('/dashboard'), 300);
+
     } catch (err) {
-      console.error(' Login failed:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Échec de la connexion';
       setError(errorMessage);
     } finally {
@@ -85,12 +51,12 @@ export default function LoginPage() {
     <div className="login-page">
       <BackgroundDecoration />
       <FloatingIcons />
-      
+
       <div className="login-container">
         <WelcomeSection />
-        <LoginForm 
-          onSubmit={handleSubmit} 
-          loading={loading} 
+        <LoginForm
+          onSubmit={handleSubmit}
+          loading={loading}
           error={error}
         />
       </div>

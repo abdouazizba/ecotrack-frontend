@@ -3,11 +3,47 @@
  */
 
 // ============================================
+// USER TRANSFORMER
+// ============================================
+
+export const transformUserToFrontend = (backendData) => {
+  if (!backendData) return null;
+  return {
+    id: backendData.id,
+    email: backendData.email,
+    firstName: backendData.prenom || backendData.firstName || backendData.first_name || '',
+    lastName: backendData.nom || backendData.lastName || backendData.last_name || '',
+    role: backendData.role,
+    phone: backendData.phone || backendData.telephone || '',
+    status: backendData.status || backendData.statut || 'active',
+    is_active: backendData.is_active,
+    created_at: backendData.created_at || backendData.createdAt,
+  };
+};
+
+export const transformUserToBackend = (frontendData) => {
+  const payload = {
+    email: frontendData.email,
+    prenom: frontendData.firstName,
+    nom: frontendData.lastName,
+    role: frontendData.role,
+    telephone: frontendData.phone || undefined,
+    statut: frontendData.status,
+  };
+  if (frontendData.password) payload.password = frontendData.password;
+  return payload;
+};
+
+export const transformUsersArrayToFrontend = (backendArray) => {
+  return (Array.isArray(backendArray) ? backendArray : []).map(transformUserToFrontend);
+};
+
+// ============================================
 // ZONES TRANSFORMERS
 // ============================================
 
 export const transformZoneToBackend = (frontendData) => {
-  const backendData = {
+  const result = {
     nom: frontendData.nom || frontendData.name,
     code_zone: frontendData.code_zone || `ZONE-${Date.now()}`,
     description: frontendData.description,
@@ -16,20 +52,14 @@ export const transformZoneToBackend = (frontendData) => {
     longitude: parseFloat(frontendData.longitude) || 0,
     is_active: frontendData.is_active !== false,
   };
-  console.log('🔄 transformZoneToBackend:', {
-    input: frontendData,
-    output: backendData,
-  });
-  return backendData;
+  if (frontendData.geometrie) result.geometrie = frontendData.geometrie;
+  return result;
 };
 
 export const transformZoneToFrontend = (backendData) => {
-  if (!backendData) {
-    console.error('❌ transformZoneToFrontend: backendData is null/undefined');
-    return null;
-  }
-  
-  const result = {
+  if (!backendData) return null;
+
+  return {
     id: backendData.id,
     nom: backendData.nom || backendData.name,
     code_zone: backendData.code_zone,
@@ -41,9 +71,6 @@ export const transformZoneToFrontend = (backendData) => {
     geometrie: backendData.geometrie,
     created_at: backendData.createdAt || backendData.created_at,
   };
-  
-  console.log('✨ transformZoneToFrontend result:', result);
-  return result;
 };
 
 // ============================================
@@ -65,30 +92,34 @@ export const transformConteneurToBackend = (frontendData) => {
 };
 
 export const transformConteneurToFrontend = (backendData) => {
-  // Sécuriser les données en cas de structure inattendue
-  if (!backendData) {
-    console.error('🚨 transformConteneurToFrontend: backendData is null/undefined');
-    return {};
-  }
+  if (!backendData) return {};
 
   const containerId = backendData.id || backendData._id || 'unknown';
-  
+
+  // Le back peut renvoyer latitude/longitude à plat OU imbriqué dans localisation{}
+  const lat = backendData.latitude ?? backendData.localisation?.latitude ?? 0;
+  const lng = backendData.longitude ?? backendData.localisation?.longitude ?? 0;
+
   return {
     id: containerId,
     code_conteneur: backendData.code_conteneur,
-    name: backendData.code_conteneur || `Conteneur ${(typeof containerId === 'string' ? containerId.slice(0, 8) : 'N/A')}`,
-    type: backendData.type_conteneur,
-    capacity: backendData.capacite,
-    latitude: backendData.latitude,
-    longitude: backendData.longitude,
-    status: backendData.statut,
-    zoneId: backendData.id_zone,
-    fillLevel: backendData.taux_remplissage || 0,
-    date_installation: backendData.date_installation,
+    name: backendData.code_conteneur || `Conteneur ${typeof containerId === 'string' ? containerId.slice(0, 8) : 'N/A'}`,
+    // Back peut renvoyer type_conteneur (create) OU type (schema)
+    type: backendData.type_conteneur || backendData.type,
+    // Back peut renvoyer capacite (create) OU capacite_litres (schema)
+    capacity: backendData.capacite ?? backendData.capacite_litres,
+    latitude: lat,
+    longitude: lng,
+    // Back peut renvoyer statut (actif/maintenance/retire) OU status (active/maintenance/full)
+    status: backendData.statut || backendData.status,
+    // Back peut renvoyer id_zone (create) OU zone_id (schema)
+    zoneId: backendData.id_zone || backendData.zone_id,
+    fillLevel: backendData.taux_remplissage ?? null,
+    date_installation: backendData.date_installation || backendData.date_creation,
     notes: backendData.notes,
     zone: backendData.zone ? transformZoneToFrontend(backendData.zone) : null,
     mesures: backendData.mesures ? backendData.mesures.map(transformMesureToFrontend) : [],
-    created_at: backendData.createdAt,
+    created_at: backendData.createdAt || backendData.created_at || backendData.date_creation,
   };
 };
 
@@ -123,36 +154,64 @@ export const transformMesureToFrontend = (backendData) => {
 // SIGNALEMENTS TRANSFORMERS
 // ============================================
 
+const SIGNALEMENT_TYPE_TO_BACKEND = {
+  'overflowing': 'DÉBORDEMENT',
+  'full': 'CONTENEUR_PLEIN',
+  'damaged': 'CONTENEUR_ENDOMMAGÉ',
+  'smell': 'MAUVAISE_ODEUR',
+  'other': 'AUTRE',
+};
+
+const SIGNALEMENT_TYPE_TO_FRONTEND = {
+  'DÉBORDEMENT': 'overflowing',
+  'CONTENEUR_PLEIN': 'full',
+  'CONTENEUR_ENDOMMAGÉ': 'damaged',
+  'MAUVAISE_ODEUR': 'smell',
+  'AUTRE': 'other',
+};
+
+const SIGNALEMENT_STATUS_TO_BACKEND = {
+  'pending': 'OUVERT',
+  'in_progress': 'EN_COURS_DE_TRAITEMENT',
+  'closed': 'FERMÉ',
+  'rejected': 'REJETÉ',
+};
+
+// Gère les deux formats possibles : français majuscule (réel) et anglais minuscule (schema swagger)
+const SIGNALEMENT_STATUS_TO_FRONTEND = {
+  'OUVERT': 'pending',
+  'EN_COURS_DE_TRAITEMENT': 'in_progress',
+  'FERMÉ': 'closed',
+  'REJETÉ': 'rejected',
+  // Valeurs du schema swagger (anglais minuscule) — défense si le back les retourne
+  'open': 'pending',
+  'in_progress': 'in_progress',
+  'closed': 'closed',
+  'rejected': 'rejected',
+};
+
+const SIGNALEMENT_PRIORITY_TO_BACKEND = {
+  'low': 'BASSE',
+  'medium': 'NORMALE',
+  'high': 'HAUTE',
+  'critical': 'CRITIQUE',
+};
+
+const SIGNALEMENT_PRIORITY_TO_FRONTEND = {
+  'BASSE': 'low',
+  'NORMALE': 'medium',
+  'HAUTE': 'high',
+  'CRITIQUE': 'critical',
+};
+
 export const transformSignalementToBackend = (frontendData) => {
-  const typeMap = {
-    'overflowing': 'DÉBORDEMENT',
-    'full': 'CONTENEUR_PLEIN',
-    'damaged': 'CONTENEUR_ENDOMMAGÉ',
-    'smell': 'MAUVAISE_ODEUR',
-    'other': 'AUTRE',
-  };
-
-  const statusMap = {
-    'pending': 'OUVERT',
-    'in_progress': 'EN_COURS_DE_TRAITEMENT',
-    'closed': 'FERMÉ',
-    'rejected': 'REJETÉ',
-  };
-
-  const priorityMap = {
-    'low': 'BASSE',
-    'medium': 'NORMALE',
-    'high': 'HAUTE',
-    'critical': 'CRITIQUE',
-  };
-
   return {
-    type: typeMap[frontendData.type] || 'AUTRE',
+    type: SIGNALEMENT_TYPE_TO_BACKEND[frontendData.type] || 'AUTRE',
     description: frontendData.description,
-    statut: statusMap[frontendData.status] || 'OUVERT',
-    priorite: priorityMap[frontendData.priority] || 'NORMALE',
+    statut: SIGNALEMENT_STATUS_TO_BACKEND[frontendData.status] || 'OUVERT',
+    priorite: SIGNALEMENT_PRIORITY_TO_BACKEND[frontendData.priority] || 'NORMALE',
     id_conteneur: frontendData.id_conteneur || frontendData.containerId,
-    id_utilisateur: frontendData.id_utilisateur || frontendData.userId,
+    // id_utilisateur injecté automatiquement par le back depuis le JWT
     latitude: frontendData.latitude,
     longitude: frontendData.longitude,
     photo_url: frontendData.photo_url,
@@ -160,42 +219,158 @@ export const transformSignalementToBackend = (frontendData) => {
 };
 
 export const transformSignalementToFrontend = (backendData) => {
-  const typeMap = {
-    'DÉBORDEMENT': 'overflowing',
-    'CONTENEUR_PLEIN': 'full',
-    'CONTENEUR_ENDOMMAGÉ': 'damaged',
-    'MAUVAISE_ODEUR': 'smell',
-    'AUTRE': 'other',
-  };
-
-  const statusMap = {
-    'OUVERT': 'pending',
-    'EN_COURS_DE_TRAITEMENT': 'in_progress',
-    'FERMÉ': 'closed',
-    'REJETÉ': 'rejected',
-  };
-
-  const priorityMap = {
-    'BASSE': 'low',
-    'NORMALE': 'medium',
-    'HAUTE': 'high',
-    'CRITIQUE': 'critical',
-  };
-
   return {
     id: backendData.id,
-    type: typeMap[backendData.type] || 'other',
+    type: SIGNALEMENT_TYPE_TO_FRONTEND[backendData.type] || 'other',
     description: backendData.description,
-    status: statusMap[backendData.statut] || 'pending',
-    priority: priorityMap[backendData.priorite] || 'medium',
+    status: SIGNALEMENT_STATUS_TO_FRONTEND[backendData.statut || backendData.status] || 'pending',
+    priority: SIGNALEMENT_PRIORITY_TO_FRONTEND[backendData.priorite] || 'medium',
     id_conteneur: backendData.id_conteneur,
     id_utilisateur: backendData.id_utilisateur,
+    citoyen_id: backendData.citoyen_id,
     latitude: backendData.latitude,
     longitude: backendData.longitude,
     photo_url: backendData.photo_url,
-    created_at: backendData.createdAt,
+    created_at: backendData.date_creation || backendData.createdAt || backendData.created_at,
   };
 };
+
+// ============================================
+// TOURNÉES TRANSFORMERS
+// ============================================
+
+const TOURNEE_STATUS_TO_FRONTEND = {
+  'PLANIFIÉE':            'pending',
+  'EN_ATTENTE':           'pending',   // fallback seeds
+  'EN_COURS':             'in_progress',
+  'TERMINÉE':             'done',
+  'TERMINEE':             'done',
+  'ANNULÉE':              'cancelled',
+  // valeurs déjà en anglais (seed JS)
+  'pending':              'pending',
+  'in_progress':          'in_progress',
+  'done':                 'done',
+  'cancelled':            'cancelled',
+};
+
+const TOURNEE_STATUS_TO_BACKEND = {
+  'pending':     'PLANIFIÉE',
+  'in_progress': 'EN_COURS',
+  'done':        'TERMINÉE',
+  'cancelled':   'ANNULÉE',
+};
+
+export const transformTourneeToFrontend = (raw) => {
+  if (!raw) return null;
+  const agent = raw.agent || {};
+  const zone  = raw.zone  || {};
+  return {
+    id:           raw.id,
+    code:         raw.code || null,
+    titre:        raw.titre || raw.nom || raw.name || `Tournée ${raw.id}`,
+    zone_id:      raw.zone_id  || raw.id_zone  || raw.zoneId  || zone.id  || null,
+    zone_nom:     raw.zone_nom || zone.nom || zone.name || null,
+    agent_id:     raw.agent_id || raw.id_agent || raw.agentId || agent.id || null,
+    agent_nom:    raw.agent_nom
+                  || (agent.prenom || agent.firstName ? `${agent.prenom || agent.firstName} ${agent.nom || agent.lastName}` : null)
+                  || null,
+    date_prevue:  raw.date_prevue || raw.date || raw.datePrevue || null,
+    status:       TOURNEE_STATUS_TO_FRONTEND[raw.statut || raw.status] || 'pending',
+    signalements: Array.isArray(raw.signalements)
+                    ? raw.signalements.map(transformSignalementToFrontend)
+                    : [],
+    created_at:   raw.created_at || raw.createdAt || null,
+  };
+};
+
+export const transformTourneeToBackend = (data) => ({
+  code:      data.code || `TOUR-${Date.now()}`,
+  date:      data.date_prevue || data.date,
+  titre:     data.titre,
+  id_zone:   data.zone_id,
+  id_agent:  data.agent_id,
+  statut:    TOURNEE_STATUS_TO_BACKEND[data.status] || 'PLANIFIÉE',
+});
+
+export const transformTourneesArrayToFrontend = (arr) =>
+  (Array.isArray(arr) ? arr : []).map(transformTourneeToFrontend);
+
+// ============================================
+// CAPTEURS TRANSFORMERS
+// ============================================
+
+export const transformCapteurToFrontend = (d) => {
+  if (!d) return null;
+  return {
+    id:              d.id,
+    code_capteur:    d.code_capteur,
+    type:            d.type,
+    statut:          d.statut || 'ACTIF',
+    batterie:        d.batterie ?? null,
+    id_conteneur:    d.id_conteneur,
+    conteneur:       d.conteneur ? transformConteneurToFrontend(d.conteneur) : null,
+    valeur_actuelle: d.valeur_actuelle ?? null,
+    derniere_mesure: d.derniere_mesure ?? null,
+    created_at:      d.createdAt || d.created_at,
+  };
+};
+
+export const transformCapteurToBackend = (d) => {
+  const payload = {
+    code_capteur: d.code_capteur,
+    type:         d.type,
+    id_conteneur: d.id_conteneur,
+    statut:       d.statut || 'ACTIF',
+  };
+  if (d.batterie !== undefined && d.batterie !== '') {
+    payload.batterie = Number(d.batterie);
+  }
+  return payload;
+};
+
+export const transformCapteursArrayToFrontend = (arr) =>
+  (Array.isArray(arr) ? arr : []).map(transformCapteurToFrontend);
+
+// ============================================
+// SENSOR ENRICHMENT
+// ============================================
+
+/**
+ * Enriches each container's fillLevel from sensor data.
+ *
+ * Priority:
+ *   1. REMPLISSAGE capteur → valeur_actuelle  (most accurate)
+ *   2. Any capteur        → derniere_mesure.taux_remplissage
+ *      (every measurement row stores taux_remplissage regardless of sensor type)
+ *   3. Static taux_remplissage from the container row (fallback)
+ */
+export function enrichContainersWithSensors(containers, capteurs) {
+  // Pass 1: REMPLISSAGE sensor fill level (authoritative)
+  const fillFromRemplissage = {};
+  // Pass 2: taux_remplissage from any sensor's last measurement (fallback)
+  const fillFromMesure = {};
+
+  capteurs.forEach((cap) => {
+    const containerId = cap.conteneur?.id || cap.id_conteneur;
+    if (!containerId) return;
+
+    if (cap.type === 'REMPLISSAGE' && cap.valeur_actuelle != null) {
+      fillFromRemplissage[containerId] = cap.valeur_actuelle;
+    }
+
+    if (cap.derniere_mesure?.taux_remplissage != null && fillFromMesure[containerId] == null) {
+      fillFromMesure[containerId] = cap.derniere_mesure.taux_remplissage;
+    }
+  });
+
+  return containers.map((c) => ({
+    ...c,
+    fillLevel:
+      fillFromRemplissage[c.id] != null ? fillFromRemplissage[c.id] :
+      fillFromMesure[c.id]      != null ? fillFromMesure[c.id]      :
+      c.fillLevel,
+  }));
+}
 
 // ============================================
 // BATCH TRANSFORMERS

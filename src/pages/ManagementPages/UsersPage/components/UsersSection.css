@@ -1,0 +1,176 @@
+/* ── Page ─────────────────────────────────────── */
+.usr-page { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+.usr-error {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px; background: rgba(239,68,68,0.1);
+  border-left: 3px solid #ef4444; color: #ef4444;
+  font-size: 13px; font-weight: 500; flex-shrink: 0;
+}
+.usr-error button { background: none; border: none; color: #ef4444; font-size: 18px; cursor: pointer; }
+
+/* ── Split ────────────────────────────────────── */
+.usr-split { display: flex; flex: 1; overflow: hidden; }
+
+/* ── LEFT ─────────────────────────────────────── */
+.usr-left {
+  width: 300px; flex-shrink: 0; display: flex; flex-direction: column;
+  border-right: 1px solid #e2e8f0; background: #f8fafc; overflow: hidden;
+}
+
+.usr-left-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 14px 10px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;
+}
+.usr-left-header h2 { font-size: 15px; font-weight: 700; color: #1e293b; margin: 0; }
+
+.usr-btn-new {
+  display: flex; align-items: center; gap: 5px; padding: 6px 12px;
+  background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+  border: none; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: opacity 0.2s;
+}
+.usr-btn-new:hover { opacity: 0.88; }
+
+.usr-search { padding: 10px 10px 6px; flex-shrink: 0; }
+.usr-search input {
+  width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px;
+  font-size: 13px; color: #1e293b; background: #fff; outline: none;
+  font-family: inherit; box-sizing: border-box; transition: border-color 0.2s;
+}
+.usr-search input:focus { border-color: #10b981; }
+
+.usr-tabs { display: flex; padding: 4px 8px 8px; gap: 4px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.usr-tab {
+  padding: 4px 10px; border: 1px solid transparent; border-radius: 5px;
+  font-size: 11px; font-weight: 600; cursor: pointer; background: transparent;
+  color: #64748b; font-family: inherit; transition: all 0.15s;
+}
+.usr-tab:hover { background: #e2e8f0; }
+.usr-tab.active { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #059669; }
+
+.usr-list { flex: 1; overflow-y: auto; padding: 8px; }
+.usr-empty { text-align: center; color: #94a3b8; font-size: 13px; padding: 24px 0; margin: 0; }
+
+/* card */
+.usr-card {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 7px; cursor: pointer;
+  transition: all 0.18s; font-family: inherit;
+}
+.usr-card:hover { border-color: #10b981; box-shadow: 0 2px 8px rgba(16,185,129,0.1); }
+.usr-card.active { border-color: #10b981; background: rgba(16,185,129,0.04); box-shadow: 0 2px 12px rgba(16,185,129,0.15); }
+
+.usrc-info { flex: 1; min-width: 0; }
+.usrc-name { display: block; font-size: 12px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.usrc-email { display: block; font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.usrc-badges { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.usr-badge {
+  display: inline-flex; align-items: center; padding: 2px 8px;
+  border-radius: 20px; font-size: 10px; font-weight: 600; white-space: nowrap;
+}
+.usr-status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── RIGHT ────────────────────────────────────── */
+.usr-right { flex: 1; overflow-y: auto; background: #fff; }
+
+.usr-detail-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 14px; color: #94a3b8; padding: 40px;
+}
+.usr-detail-empty p { font-size: 15px; text-align: center; margin: 0; }
+
+.usr-detail { padding: 28px; }
+
+.usr-detail-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+  padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;
+}
+.usrd-title { flex: 1; }
+.usrd-title h2 { font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 8px; }
+.usrd-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.usrd-actions { display: flex; align-items: center; gap: 8px; }
+
+.usrd-btn-edit {
+  display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+  background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 8px; color: #10b981; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: background 0.15s;
+}
+.usrd-btn-edit:hover { background: rgba(16,185,129,0.18); }
+
+.usrd-btn-delete {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2); border-radius: 8px;
+  color: #ef4444; cursor: pointer; transition: background 0.15s;
+}
+.usrd-btn-delete:hover { background: rgba(239,68,68,0.15); }
+
+.usr-detail-section { margin-bottom: 24px; }
+.usr-detail-section h3 {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px;
+}
+.usr-detail-section h3 svg { color: #10b981; }
+
+.usr-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.usr-info-item {
+  background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 10px;
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
+}
+.usr-info-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; }
+.usr-info-value { font-size: 13px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 4px; }
+
+/* ── MODAL ────────────────────────────────────── */
+.usr-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000; padding: 20px;
+}
+.usr-modal {
+  background: #fff; border-radius: 16px; width: 100%; max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
+}
+.usr-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9;
+}
+.usr-modal-header h3 { font-size: 16px; font-weight: 700; color: #1e293b; margin: 0; }
+.usr-modal-close {
+  width: 32px; height: 32px; background: #f1f5f9; border: none; border-radius: 8px;
+  color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+}
+.usr-modal-close:hover { background: #e2e8f0; }
+.usr-modal-form { padding: 20px 24px 0; display: flex; flex-direction: column; gap: 14px; }
+.usr-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.usr-field { display: flex; flex-direction: column; gap: 5px; }
+.usr-field label { font-size: 12px; font-weight: 600; color: #475569; }
+.usr-field input, .usr-field select {
+  padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 9px;
+  font-size: 13px; color: #1e293b; background: #f8fafc; outline: none;
+  font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.usr-field input:focus, .usr-field select:focus {
+  border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); background: #fff;
+}
+.usr-modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 18px 24px; border-top: 1px solid #f1f5f9; margin-top: 6px;
+}
+.usr-btn-cancel {
+  padding: 9px 18px; background: #f1f5f9; border: 1px solid #e2e8f0;
+  border-radius: 8px; color: #64748b; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: background 0.15s;
+}
+.usr-btn-cancel:hover { background: #e2e8f0; }
+.usr-btn-confirm {
+  padding: 9px 20px; background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: opacity 0.2s;
+}
+.usr-btn-confirm:hover { opacity: 0.88; }

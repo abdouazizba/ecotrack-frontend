@@ -1,22 +1,26 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ContainersPage from './pages/ManagementPages/ContainersPage';
 import ZonesPage from './pages/ManagementPages/ZonesPage';
 import UsersPage from './pages/ManagementPages/UsersPage';
+import TourneesPage from './pages/ManagementPages/TourneesPage';
 import SignalementsPage from './pages/ManagementPages/SignalementsPage';
+import CapteurPage from './pages/ManagementPages/CapteurPage';
 import SignalementsAgentsPage from './pages/ManagementPages/SignalementsPage/SignalementsAgentsPage';
 import SignalementsCitoyensPage from './pages/ManagementPages/SignalementsPage/SignalementsCitoyensPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import Sidebar from './components/Sidebar';
+import ProfilePage from './pages/ProfilePage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import Sidebar from './components/navigation/Sidebar';
+import Navbar from './components/navigation/Navbar';
 import useAuthStore from './store/authStore';
 import './App.css';
 
-// Layout que wraps le Sidebar + les routes protégées
 function ProtectedLayout() {
   return (
     <ProtectedRoute>
+      <Navbar />
       <div className="dashboard-container">
         <Sidebar />
         <main className="dashboard-main">
@@ -32,20 +36,6 @@ function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
 
-  useEffect(() => {
-    // Vérifier la persistence du store au démarrage
-    const storedUser = localStorage.getItem('auth-store');
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed.state?.user) {
-          console.log('✓ User restored from storage:', parsed.state.user);
-        }
-      } catch (e) {
-        console.error('Failed to restore auth state:', e);
-      }
-    }
-  }, []);
 
   return (
     <Router>
@@ -58,9 +48,12 @@ function App() {
           <Route path="/containers" element={<ContainersPage />} />
           <Route path="/zones" element={<ZonesPage />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/tournees" element={<TourneesPage />} />
           <Route path="/signalements" element={<SignalementsPage />} />
+          <Route path="/capteurs" element={<CapteurPage />} />
           <Route path="/signalements/agents" element={<SignalementsAgentsPage />} />
           <Route path="/signalements/citoyens" element={<SignalementsCitoyensPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
         
         <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />

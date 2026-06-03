@@ -1,30 +1,19 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../../store/authStore';
+import React from 'react';
+import useDashboardData from '../../hooks/useDashboardData';
 import StatsSection from './components/StatsSection';
 import ChartsSection from './components/ChartsSection';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const { user } = useAuthStore();
-
-  useEffect(() => {
-    if (!user || !user.email) {
-      navigate('/login');
-    }
-  }, [user, navigate]);
+  const dashData = useDashboardData();
 
   return (
     <div className="dashboard-content">
-      {/* Stats Section */}
       <div className="analytics-section">
-        <StatsSection />
+        <StatsSection {...dashData} />
       </div>
-
-      {/* Charts Section */}
       <div className="charts-wrapper">
-        <ChartsSection />
+        <ChartsSection {...dashData} />
       </div>
     </div>
   );

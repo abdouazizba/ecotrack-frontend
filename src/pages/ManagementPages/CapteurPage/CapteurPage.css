@@ -1,0 +1,519 @@
+/* ── Page container ─────────────────────────────── */
+.cap-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cap-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background: rgba(239,68,68,0.1);
+  border-left: 3px solid #ef4444;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.cap-error button {
+  background: none; border: none; color: #ef4444;
+  font-size: 18px; cursor: pointer; line-height: 1;
+}
+
+/* ── Split layout ─────────────────────────────── */
+.cap-split {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── LEFT panel ─────────────────────────────────── */
+.cap-left {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.cap-left-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.cap-left-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  flex: 1;
+}
+
+.cap-count-badge {
+  background: rgba(16,185,129,0.15);
+  color: #059669;
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cap-btn-create {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.cap-btn-create:hover { background: #059669; }
+
+/* tabs */
+.cap-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  gap: 4px;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.cap-tab {
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #64748b;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.cap-tab:hover { background: #e2e8f0; color: #334155; }
+.cap-tab.active {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.3);
+  color: #059669;
+}
+
+/* list */
+.cap-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.cap-empty {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 28px 0;
+  margin: 0;
+}
+
+/* card */
+.cap-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 13px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.cap-card:hover { border-color: #10b981; box-shadow: 0 2px 8px rgba(16,185,129,0.1); }
+.cap-card.active {
+  border-color: #10b981;
+  background: rgba(16,185,129,0.04);
+  box-shadow: 0 2px 12px rgba(16,185,129,0.15);
+}
+
+.cap-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cap-card-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+  font-family: 'Courier New', monospace;
+}
+
+.cap-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* shared badge */
+.cap-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cap-battery {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #64748b;
+  margin-left: auto;
+}
+
+/* ── RIGHT panel ─────────────────────────────────── */
+.cap-right {
+  flex: 1;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.cap-detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 14px;
+  color: #94a3b8;
+  padding: 40px;
+}
+.cap-detail-empty p { font-size: 15px; text-align: center; margin: 0; }
+
+.cap-detail { padding: 28px; }
+
+.cap-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cdh-left h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.cdh-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.cap-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cap-btn-edit {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 8px;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cap-btn-edit:hover { background: rgba(59,130,246,0.15); }
+
+.cap-btn-delete {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 8px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cap-btn-delete:hover { background: rgba(239,68,68,0.15); }
+
+.cap-detail-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.cap-detail-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.cap-detail-section { margin-bottom: 24px; }
+
+.cap-detail-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+}
+.cap-detail-section h3 svg { color: #10b981; }
+
+.cap-detail-section p {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.6;
+  margin: 0;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid #f1f5f9;
+}
+
+.cap-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cap-info-item {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.cap-info-item label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.cap-info-item span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cap-battery-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.cap-battery-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.cap-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.cap-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.cap-action-assign {
+  background: rgba(139,92,246,0.1);
+  border-color: rgba(139,92,246,0.25);
+  color: #7c3aed;
+}
+.cap-action-assign:hover { background: rgba(139,92,246,0.18); }
+
+.cap-action-actif {
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.25);
+  color: #10b981;
+}
+.cap-action-actif:hover { background: rgba(16,185,129,0.18); }
+
+.cap-action-maintenance {
+  background: rgba(245,158,11,0.1);
+  border-color: rgba(245,158,11,0.25);
+  color: #f59e0b;
+}
+.cap-action-maintenance:hover { background: rgba(245,158,11,0.18); }
+
+.cap-action-inactif {
+  background: rgba(100,116,139,0.1);
+  border-color: rgba(100,116,139,0.25);
+  color: #64748b;
+}
+.cap-action-inactif:hover { background: rgba(100,116,139,0.18); }
+
+/* ── Modal overlay ─────────────────────────────── */
+.cap-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cap-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.cap-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cap-modal-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.cap-modal-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.cap-modal-close:hover { background: #f1f5f9; color: #475569; }
+
+.cap-modal-form { padding: 20px 24px 24px; }
+
+.cap-field {
+  margin-bottom: 16px;
+}
+
+.cap-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.cap-field input,
+.cap-field select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1e293b;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.cap-field input:focus,
+.cap-field select:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+}
+
+.cap-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.cap-btn-cancel {
+  padding: 9px 18px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.cap-btn-cancel:hover { background: #e2e8f0; }
+
+.cap-btn-confirm {
+  padding: 9px 20px;
+  background: #10b981;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.cap-btn-confirm:hover { background: #059669; }
+.cap-btn-confirm:disabled { background: #a7f3d0; cursor: not-allowed; }

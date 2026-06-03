@@ -13,7 +13,7 @@ export default function WelcomeSection() {
       </div>
       <div className="welcome-text">
         <h2>Bienvenue sur EcoTrack</h2>
-        <p>Gestionnie vos déchets de manière intelligente et durable</p>
+        <p>Gestion des déchets de manière intelligente et durable</p>
         <div className="features-list">
           <div className="feature-item">
             <Trash2 size={20} className="feature-icon" />

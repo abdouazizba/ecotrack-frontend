@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Mail, Lock } from 'lucide-react';
 
 export default function LoginForm({ onSubmit, loading, error }) {
-  const [email, setEmail] = useState('aminata.ba@ecotrack.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [emailFocus, setEmailFocus] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
 
@@ -75,20 +75,6 @@ export default function LoginForm({ onSubmit, loading, error }) {
           )}
         </button>
 
-        <div className="divider">
-          <span>Informations de test</span>
-        </div>
-
-        <div className="test-credentials">
-          <div className="cred-item">
-            <small>Email:</small>
-            <code>aminata.ba@ecotrack.com</code>
-          </div>
-          <div className="cred-item">
-            <small>Mot de passe:</small>
-            <code>password123</code>
-          </div>
-        </div>
       </form>
     </div>
   );

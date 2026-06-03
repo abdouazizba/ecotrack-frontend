@@ -14,8 +14,8 @@ import { useState, useEffect, useCallback } from 'react';
  */
 export const useLoginForm = (onSubmit) => {
   const [formData, setFormData] = useState({
-    email: 'aminata.ba@ecotrack.com',
-    password: 'password123',
+    email: '',
+    password: '',
   });
 
   const [errors, setErrors] = useState({});
