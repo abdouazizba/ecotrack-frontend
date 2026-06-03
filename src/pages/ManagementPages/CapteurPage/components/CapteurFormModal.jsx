@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
 
 const EMPTY = {
   code_capteur: '',
@@ -54,7 +55,9 @@ export default function CapteurFormModal({ show, capteur, conteneurs, onClose, o
 
   return (
     <div className="cap-overlay" onClick={handleClose}>
-      <div className="cap-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="cap-modal modal-split" onClick={(e) => e.stopPropagation()}>
+        <ModalBrandPanel />
+        <div className="modal-right">
         <div className="cap-modal-header">
           <h3>{isEdit ? 'Modifier le capteur' : 'Nouveau capteur'}</h3>
           <button className="cap-modal-close" onClick={handleClose}><X size={18} /></button>
@@ -134,6 +137,7 @@ export default function CapteurFormModal({ show, capteur, conteneurs, onClose, o
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

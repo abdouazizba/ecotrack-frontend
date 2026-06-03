@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Plus, Trash2, Clock, CheckCircle, MapPin, Calendar,
-  UserCheck, AlertTriangle, Package, X, User,
+  UserCheck, AlertTriangle, Package, X, User, Edit2,
 } from 'lucide-react';
 import { TOURNEE_STATUS, TYPE_LABELS, PRIORITY_META } from '../utils/constants';
 
@@ -14,6 +14,7 @@ export default function TourneeDetail({
   onAddSigClick,
   onAssignClick,
   onRemoveSignalement,
+  onEditClick,
 }) {
   if (!tournee) {
     return (
@@ -24,10 +25,26 @@ export default function TourneeDetail({
     );
   }
 
-  const statusMeta = TOURNEE_STATUS[tournee.status] || TOURNEE_STATUS.pending;
+  const statusMeta   = TOURNEE_STATUS[tournee.status] || TOURNEE_STATUS.pending;
+  const sigs         = tournee.signalements || [];
+  const total        = sigs.length;
+  const closedCount  = sigs.filter((s) => s.status === 'closed').length;
+  const progress     = total > 0 ? Math.round((closedCount / total) * 100) : 0;
+  const allDone      = total > 0 && closedCount === total;
 
   return (
     <div className="tr-detail">
+      {/* suggestion complétion automatique */}
+      {tournee.status === 'in_progress' && allDone && (
+        <div className="tr-completion-banner">
+          <CheckCircle size={15} />
+          <span>Tous les signalements sont traités —</span>
+          <button onClick={() => onStatusChange(tournee.id, 'done')}>
+            Marquer comme terminée
+          </button>
+        </div>
+      )}
+
       {/* header */}
       <div className="tr-header">
         <div className="trh-left">
@@ -49,6 +66,11 @@ export default function TourneeDetail({
           {tournee.status === 'in_progress' && (
             <button className="tr-btn-status tr-btn-done" onClick={() => onStatusChange(tournee.id, 'done')}>
               <CheckCircle size={14} /> Terminer
+            </button>
+          )}
+          {onEditClick && (tournee.status === 'pending' || tournee.status === 'in_progress') && (
+            <button className="tr-btn-edit" onClick={() => onEditClick(tournee)} title="Modifier la tournée">
+              <Edit2 size={15} />
             </button>
           )}
           <button className="tr-btn-delete" onClick={() => onDelete(tournee.id)} title="Supprimer la tournée">
@@ -77,25 +99,41 @@ export default function TourneeDetail({
         </select>
       </div>
 
+      {/* barre de progression */}
+      {total > 0 && (
+        <div className="tr-progress">
+          <div className="tr-progress-label">
+            <span>Traitement</span>
+            <span>{closedCount} / {total} ({progress}%)</span>
+          </div>
+          <div className="tr-progress-bar">
+            <div
+              className="tr-progress-fill"
+              style={{ width: `${progress}%`, background: progress === 100 ? '#10b981' : '#3b82f6' }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* signalements */}
       <div className="tr-sigs-header">
         <h3>
           <AlertTriangle size={16} />
-          Signalements ({tournee.signalements.length})
+          Signalements ({total})
         </h3>
         <button className="tl-btn-new" onClick={onAddSigClick}>
           <Plus size={14} /> Ajouter
         </button>
       </div>
 
-      {tournee.signalements.length === 0 ? (
+      {total === 0 ? (
         <div className="tr-sigs-empty">
           <Package size={32} strokeWidth={1.2} />
           <p>Aucun signalement — cliquez sur Ajouter pour en inclure</p>
         </div>
       ) : (
         <div className="tr-sigs-list">
-          {tournee.signalements.map((sig) => {
+          {sigs.map((sig) => {
             const priority = PRIORITY_META[sig.priority] || PRIORITY_META.medium;
             return (
               <div key={sig.id} className="sig-card">

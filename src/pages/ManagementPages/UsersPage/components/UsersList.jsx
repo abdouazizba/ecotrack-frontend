@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, UserCheck, User } from 'lucide-react';
+import Pagination from '../../../../components/common/Pagination';
+
+const PAGE_SIZE = 20;
 
 const ROLE_META = {
   admin: { label: 'Admin', color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
@@ -40,6 +43,12 @@ export default function UsersList({
   users, selectedId, filter, search, loading,
   onSelect, onFilterChange, onSearchChange, onCreateClick,
 }) {
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [users]);
+
+  const totalPages = Math.ceil(users.length / PAGE_SIZE);
+  const paged = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <div className="usr-left">
       <div className="usr-left-header">
@@ -75,7 +84,7 @@ export default function UsersList({
         {!loading && users.length === 0 && (
           <p className="usr-empty">Aucun utilisateur trouvé</p>
         )}
-        {users.map((u) => {
+        {paged.map((u) => {
           const role   = ROLE_META[u.role]   || ROLE_META.agent;
           const status = STATUS_META[u.status] || STATUS_META.active;
           const name = (u.firstName || u.lastName)
@@ -102,6 +111,13 @@ export default function UsersList({
           );
         })}
       </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={users.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

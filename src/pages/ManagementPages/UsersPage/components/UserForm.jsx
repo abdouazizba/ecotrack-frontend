@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
 
 const EMPTY = { email: '', firstName: '', lastName: '', phone: '', role: 'agent', status: 'active', password: '' };
 
@@ -19,7 +20,9 @@ export default function UserForm({ show, editingUser, onClose, onSubmit }) {
 
   return (
     <div className="usr-overlay" onClick={onClose}>
-      <div className="usr-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="usr-modal modal-split" onClick={(e) => e.stopPropagation()}>
+        <ModalBrandPanel />
+        <div className="modal-right">
         <div className="usr-modal-header">
           <h3>{editingUser ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}</h3>
           <button className="usr-modal-close" onClick={onClose}><X size={18} /></button>
@@ -81,6 +84,7 @@ export default function UserForm({ show, editingUser, onClose, onSubmit }) {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

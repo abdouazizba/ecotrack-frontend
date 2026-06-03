@@ -303,7 +303,7 @@ export default function ZonesMapWithPanel() {
 
       {/* ── CARTE ── */}
       <MapContainer
-        center={[14.6937, -17.4441]}
+        center={[48.8566, 2.3522]}
         zoom={12}
         className="zones-map"
         zoomControl={false}
@@ -340,7 +340,7 @@ export default function ZonesMapWithPanel() {
         {selectedZoneContainers.length > 0 && (
           <MarkerClusterGroup>
             {selectedZoneContainers.map(c => (
-              <Marker key={c.id} position={[c.latitude || 14.6937, c.longitude || -17.4441]} icon={createContainerIcon(c.status)} />
+              <Marker key={c.id} position={[c.latitude || 48.8566, c.longitude || 2.3522]} icon={createContainerIcon(c.status)} />
             ))}
           </MarkerClusterGroup>
         )}

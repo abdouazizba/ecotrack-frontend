@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, MapPin } from 'lucide-react';
+import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
+import MapPickerModal from '../../../../components/common/MapPickerModal';
 
 const EMPTY = { name: '', type: 'standard', capacity: 100, zoneId: '', status: 'actif', latitude: '', longitude: '' };
 
 export default function ContainerForm({ show, editingContainer, zones, onClose, onSubmit }) {
   const [form, setForm] = useState(EMPTY);
+  const [showMap, setShowMap] = useState(false);
 
   useEffect(() => {
     if (editingContainer) {
@@ -34,7 +37,9 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
 
   return (
     <div className="cnt-overlay" onClick={onClose}>
-      <div className="cnt-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="cnt-modal modal-split" onClick={(e) => e.stopPropagation()}>
+        <ModalBrandPanel />
+        <div className="modal-right">
         <div className="cnt-modal-header">
           <h3>{editingContainer ? 'Modifier le conteneur' : 'Nouveau conteneur'}</h3>
           <button className="cnt-modal-close" onClick={onClose}><X size={18} /></button>
@@ -83,7 +88,7 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
               </select>
             </div>
           </div>
-          <div className="cnt-form-row">
+          <div className="cnt-form-row cnt-coords-row">
             <div className="cnt-field">
               <label>Latitude</label>
               <input type="number" step="any" value={form.latitude} onChange={set('latitude')} placeholder="14.6937" />
@@ -92,6 +97,14 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
               <label>Longitude</label>
               <input type="number" step="any" value={form.longitude} onChange={set('longitude')} placeholder="-17.4441" />
             </div>
+            <button
+              type="button"
+              className="cnt-map-picker-btn"
+              onClick={() => setShowMap(true)}
+              title="Choisir sur la carte"
+            >
+              <MapPin size={16} />
+            </button>
           </div>
           <div className="cnt-modal-footer">
             <button type="button" className="cnt-btn-cancel" onClick={onClose}>Annuler</button>
@@ -100,7 +113,18 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
             </button>
           </div>
         </form>
+        </div>
       </div>
+
+      <MapPickerModal
+        show={showMap}
+        initialLat={form.latitude}
+        initialLng={form.longitude}
+        onConfirm={(lat, lng) =>
+          setForm((f) => ({ ...f, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }))
+        }
+        onClose={() => setShowMap(false)}
+      />
     </div>
   );
 }

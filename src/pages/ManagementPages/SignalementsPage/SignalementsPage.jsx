@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { getSignalements, patchSignalement, deleteSignalement } from '../../../services/api';
+import { getSignalements, patchSignalement, deleteSignalement, getAgents } from '../../../services/api';
 import SignalementsList from './components/SignalementsList';
 import SignalementDetail from './components/SignalementDetail';
 import './SignalementsPage.css';
 
 export default function SignalementsPage() {
   const [signalements, setSignalements]   = useState([]);
+  const [agents, setAgents]               = useState([]);
   const [selectedId, setSelectedId]       = useState(null);
   const [filter, setFilter]               = useState('all');
   const [loading, setLoading]             = useState(true);
@@ -14,8 +15,9 @@ export default function SignalementsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getSignalements();
+      const [data, agentsData] = await Promise.all([getSignalements(), getAgents()]);
       setSignalements(data);
+      setAgents(agentsData || []);
       setError(null);
     } catch {
       setError('Erreur lors du chargement des signalements');
@@ -33,12 +35,25 @@ export default function SignalementsPage() {
 
   const selectedSignalement = signalements.find((s) => s.id === selectedId) || null;
 
-  const handleStatusChange = useCallback(async (id, newStatus) => {
+  const handleStatusChange = useCallback(async (id, newStatus, motifRejet, photoResolutionUrl) => {
     try {
-      await patchSignalement(id, { status: newStatus });
+      await patchSignalement(id, {
+        status: newStatus,
+        motif_rejet: motifRejet,
+        photo_resolution_url: photoResolutionUrl,
+      });
       await load();
     } catch {
       setError('Erreur lors de la mise à jour du statut');
+    }
+  }, [load]);
+
+  const handleAgentAssign = useCallback(async (id, agentId) => {
+    try {
+      await patchSignalement(id, { agent_id: agentId });
+      await load();
+    } catch {
+      setError("Erreur lors de l'assignation de l'agent");
     }
   }, [load]);
 
@@ -74,7 +89,9 @@ export default function SignalementsPage() {
         <div className="sig-right">
           <SignalementDetail
             signalement={selectedSignalement}
+            agents={agents}
             onStatusChange={handleStatusChange}
+            onAgentAssign={handleAgentAssign}
             onDelete={handleDelete}
           />
         </div>

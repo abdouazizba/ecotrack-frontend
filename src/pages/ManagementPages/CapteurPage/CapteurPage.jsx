@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   getCapteurs, createCapteur, updateCapteur, deleteCapteur,
   assignCapteurToConteneur, getContainers,
@@ -10,9 +11,10 @@ import AssignConteneurModal from './components/AssignConteneurModal';
 import './CapteurPage.css';
 
 export default function CapteurPage() {
+  const location = useLocation();
   const [capteurs, setCapteurs]         = useState([]);
   const [conteneurs, setConteneurs]     = useState([]);
-  const [selectedId, setSelectedId]     = useState(null);
+  const [selectedId, setSelectedId]     = useState(location.state?.selectedCapteurId || null);
   const [filter, setFilter]             = useState('all');
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);

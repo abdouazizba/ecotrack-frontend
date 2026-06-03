@@ -8,6 +8,7 @@ import './ContainersSection.css';
 
 export default function ContainersSection() {
   const [containers, setContainers] = useState([]);
+  const [capteurs, setCapteurs]     = useState([]);
   const [zones, setZones]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
@@ -25,7 +26,9 @@ export default function ContainersSection() {
     try {
       const [cData, zData, capData] = await Promise.all([getContainers(), getZones(), getCapteurs()]);
       const rawContainers = Array.isArray(cData) ? cData : cData?.data || [];
-      setContainers(enrichContainersWithSensors(rawContainers, capData));
+      const capList = Array.isArray(capData) ? capData : capData?.data || [];
+      setCapteurs(capList);
+      setContainers(enrichContainersWithSensors(rawContainers, capList));
       setZones(Array.isArray(zData) ? zData : zData?.data || []);
       setError(null);
     } catch {
@@ -117,6 +120,7 @@ export default function ContainersSection() {
           <ContainerDetail
             container={selectedContainer}
             zones={zones}
+            capteurs={capteurs}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />

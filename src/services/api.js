@@ -248,16 +248,28 @@ export const updateSignalement = async (id, data) => {
 // POST /signalements/{id}/close       → FERMÉ
 // POST /signalements/{id}/reject      → REJETÉ
 // PUT  /signalements/{id}             → OUVERT (retour en attente)
+export const getSignalementAudit = async (id) => {
+  try {
+    const response = await api.get(`/signalements/${id}/historique`);
+    const raw = extractArray(response.data, 'historique');
+    return raw;
+  } catch {
+    return null;
+  }
+};
+
 export const patchSignalement = async (id, partialData) => {
-  const { status } = partialData;
+  const { status, motif_rejet, agent_id, photo_resolution_url } = partialData;
   let response;
 
   if (status === 'in_progress') {
     response = await api.post(`/signalements/${id}/in-progress`);
   } else if (status === 'closed') {
-    response = await api.post(`/signalements/${id}/close`);
+    response = await api.post(`/signalements/${id}/close`, photo_resolution_url ? { photo_resolution_url } : {});
   } else if (status === 'rejected') {
-    response = await api.post(`/signalements/${id}/reject`);
+    response = await api.post(`/signalements/${id}/reject`, motif_rejet ? { motif_rejet } : {});
+  } else if (agent_id !== undefined) {
+    response = await api.put(`/signalements/${id}`, { agent_id });
   } else {
     // pending (OUVERT) — réouverture via PUT
     response = await api.put(`/signalements/${id}`, { statut: 'OUVERT' });
@@ -396,6 +408,15 @@ export const addSignalementToTournee = async (tourneeId, signalementIds) => {
     return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
   } catch (err) {
     console.error('Error adding signalements to tournee:', err.message);
+    throw err;
+  }
+};
+
+export const removeSignalementFromTournee = async (tourneeId, sigId) => {
+  try {
+    await api.delete(`/tournees/${tourneeId}/signalements/${sigId}`);
+  } catch (err) {
+    console.error('Error removing signalement from tournee:', err.message);
     throw err;
   }
 };

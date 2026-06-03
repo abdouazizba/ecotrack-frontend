@@ -205,7 +205,7 @@ const SIGNALEMENT_PRIORITY_TO_FRONTEND = {
 };
 
 export const transformSignalementToBackend = (frontendData) => {
-  return {
+  const payload = {
     type: SIGNALEMENT_TYPE_TO_BACKEND[frontendData.type] || 'AUTRE',
     description: frontendData.description,
     statut: SIGNALEMENT_STATUS_TO_BACKEND[frontendData.status] || 'OUVERT',
@@ -216,22 +216,33 @@ export const transformSignalementToBackend = (frontendData) => {
     longitude: frontendData.longitude,
     photo_url: frontendData.photo_url,
   };
+  if (frontendData.motif_rejet) payload.motif_rejet = frontendData.motif_rejet;
+  if (frontendData.agent_id)    payload.agent_id    = frontendData.agent_id;
+  return payload;
 };
 
 export const transformSignalementToFrontend = (backendData) => {
   return {
-    id: backendData.id,
-    type: SIGNALEMENT_TYPE_TO_FRONTEND[backendData.type] || 'other',
-    description: backendData.description,
-    status: SIGNALEMENT_STATUS_TO_FRONTEND[backendData.statut || backendData.status] || 'pending',
-    priority: SIGNALEMENT_PRIORITY_TO_FRONTEND[backendData.priorite] || 'medium',
-    id_conteneur: backendData.id_conteneur,
+    id:            backendData.id,
+    titre:         backendData.titre || null,
+    type:          SIGNALEMENT_TYPE_TO_FRONTEND[backendData.type] || 'other',
+    description:   backendData.description || null,
+    adresse:       backendData.adresse || null,
+    source:        backendData.source || backendData.type_signalement || null,
+    status:        SIGNALEMENT_STATUS_TO_FRONTEND[backendData.statut || backendData.status] || 'pending',
+    priority:      SIGNALEMENT_PRIORITY_TO_FRONTEND[backendData.priorite] || 'medium',
+    id_conteneur:  backendData.id_conteneur,
     id_utilisateur: backendData.id_utilisateur,
-    citoyen_id: backendData.citoyen_id,
-    latitude: backendData.latitude,
-    longitude: backendData.longitude,
-    photo_url: backendData.photo_url,
-    created_at: backendData.date_creation || backendData.createdAt || backendData.created_at,
+    id_zone:       backendData.id_zone || null,
+    citoyen_id:    backendData.citoyen_id,
+    agent_id:      backendData.agent_id || backendData.id_agent || null,
+    latitude:      backendData.latitude  ?? backendData.localisation?.latitude  ?? null,
+    longitude:     backendData.longitude ?? backendData.localisation?.longitude ?? null,
+    photo_url:              backendData.photo_url || backendData.photo || null,
+    photo_resolution_url:   backendData.photo_resolution_url || null,
+    motif_rejet:            backendData.motif_rejet || null,
+    created_at:    backendData.date_creation || backendData.date_signalement
+                   || backendData.createdAt  || backendData.created_at || null,
   };
 };
 

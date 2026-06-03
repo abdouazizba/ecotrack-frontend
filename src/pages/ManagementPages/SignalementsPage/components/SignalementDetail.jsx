@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AlertCircle, Clock, CheckCircle, XCircle, Trash2,
   MapPin, Package, Tag, Calendar, ArrowRight, RotateCcw,
+  UserCheck, AlertTriangle, Image, History,
 } from 'lucide-react';
+import SignalementAudit from './SignalementAudit';
 
 const STATUS_META = {
   pending:     { label: 'En attente', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', Icon: AlertCircle },
@@ -26,7 +28,25 @@ const PRIORITY_META = {
   low:      { label: 'Basse',    color: '#22c55e' },
 };
 
-export default function SignalementDetail({ signalement, onStatusChange, onDelete }) {
+const SLA_LIMITS = { critical: 24, high: 48, medium: 120, low: 168 };
+
+function getSlaWarning(sig) {
+  if (!sig.created_at) return null;
+  if (sig.status === 'closed' || sig.status === 'rejected') return null;
+  const ageHours = (Date.now() - new Date(sig.created_at).getTime()) / 3600000;
+  const limit = SLA_LIMITS[sig.priority] || 168;
+  if (ageHours <= limit) return null;
+  const days = Math.floor(ageHours / 24);
+  return days > 0 ? `${days}j de retard` : `${Math.floor(ageHours)}h de retard`;
+}
+
+export default function SignalementDetail({ signalement, agents = [], onStatusChange, onDelete, onAgentAssign }) {
+  const [rejectMode, setRejectMode]         = useState(false);
+  const [motifRejet, setMotifRejet]         = useState('');
+  const [closeMode, setCloseMode]           = useState(false);
+  const [photoResolution, setPhotoResolution] = useState('');
+  const [showAudit, setShowAudit]           = useState(false);
+
   if (!signalement) {
     return (
       <div className="sig-detail-empty">
@@ -36,9 +56,10 @@ export default function SignalementDetail({ signalement, onStatusChange, onDelet
     );
   }
 
-  const status = STATUS_META[signalement.status] || STATUS_META.pending;
-  const priority = PRIORITY_META[signalement.priority] || PRIORITY_META.medium;
+  const status     = STATUS_META[signalement.status] || STATUS_META.pending;
+  const priority   = PRIORITY_META[signalement.priority] || PRIORITY_META.medium;
   const StatusIcon = status.Icon;
+  const slaWarning = getSlaWarning(signalement);
 
   const date = signalement.created_at
     ? new Date(signalement.created_at).toLocaleDateString('fr-FR', {
@@ -46,8 +67,36 @@ export default function SignalementDetail({ signalement, onStatusChange, onDelet
       })
     : '—';
 
+  const handleRejectConfirm = () => {
+    if (!motifRejet.trim()) return;
+    onStatusChange(signalement.id, 'rejected', motifRejet.trim());
+    setRejectMode(false);
+    setMotifRejet('');
+  };
+
+  const handleCloseConfirm = () => {
+    onStatusChange(signalement.id, 'closed', undefined, photoResolution.trim() || undefined);
+    setCloseMode(false);
+    setPhotoResolution('');
+  };
+
+  const resetForms = () => {
+    setRejectMode(false);
+    setCloseMode(false);
+    setMotifRejet('');
+    setPhotoResolution('');
+  };
+
   return (
     <div className="sig-detail">
+      {/* SLA warning banner */}
+      {slaWarning && (
+        <div className="sig-sla-banner">
+          <AlertTriangle size={14} />
+          <span>Délai dépassé — {slaWarning}</span>
+        </div>
+      )}
+
       {/* header */}
       <div className="sig-detail-header">
         <div className="sdh-left">
@@ -61,13 +110,22 @@ export default function SignalementDetail({ signalement, onStatusChange, onDelet
             </span>
           </div>
         </div>
-        <button
-          className="sig-btn-delete"
-          onClick={() => window.confirm('Supprimer ce signalement ?') && onDelete(signalement.id)}
-          title="Supprimer"
-        >
-          <Trash2 size={16} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            className="sig-btn-audit"
+            onClick={() => setShowAudit((v) => !v)}
+            title="Historique d'activité"
+          >
+            <History size={15} />
+          </button>
+          <button
+            className="sig-btn-delete"
+            onClick={() => window.confirm('Supprimer ce signalement ?') && onDelete(signalement.id)}
+            title="Supprimer"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       </div>
 
       {/* meta */}
@@ -81,7 +139,7 @@ export default function SignalementDetail({ signalement, onStatusChange, onDelet
         )}
       </div>
 
-      {/* photo */}
+      {/* photo signalement */}
       {signalement.photo_url && (
         <div className="sig-detail-photo">
           <img
@@ -98,44 +156,141 @@ export default function SignalementDetail({ signalement, onStatusChange, onDelet
         <p>{signalement.description || 'Aucune description fournie.'}</p>
       </div>
 
+      {/* photo résolution */}
+      {signalement.status === 'closed' && signalement.photo_resolution_url && (
+        <div className="sig-detail-section">
+          <h3><Image size={14} /> Photo de résolution</h3>
+          <div className="sig-detail-photo">
+            <img
+              src={signalement.photo_resolution_url}
+              alt="Preuve de résolution"
+              onError={(e) => { e.target.parentElement.style.display = 'none'; }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* motif rejet */}
+      {signalement.status === 'rejected' && signalement.motif_rejet && (
+        <div className="sig-detail-section sig-reject-reason">
+          <h3><XCircle size={14} /> Motif du rejet</h3>
+          <p>{signalement.motif_rejet}</p>
+        </div>
+      )}
+
+      {/* assignation agent */}
+      {onAgentAssign && agents.length > 0 && signalement.status !== 'closed' && signalement.status !== 'rejected' && (
+        <div className="sig-detail-section">
+          <h3><UserCheck size={14} /> Agent assigné</h3>
+          <select
+            className="sig-agent-select"
+            value={signalement.agent_id || ''}
+            onChange={(e) => onAgentAssign(signalement.id, e.target.value || null)}
+          >
+            <option value="">— Non assigné —</option>
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>{a.firstName} {a.lastName}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* actions */}
       <div className="sig-detail-section">
         <h3>Changer le statut</h3>
-        <div className="sig-actions">
-          {signalement.status !== 'pending' && (
-            <button
-              className="sig-action-btn sig-action-reopen"
-              onClick={() => onStatusChange(signalement.id, 'pending')}
-            >
-              <RotateCcw size={14} /> Réouvrir
-            </button>
-          )}
-          {signalement.status === 'pending' && (
-            <button
-              className="sig-action-btn sig-action-progress"
-              onClick={() => onStatusChange(signalement.id, 'in_progress')}
-            >
-              <ArrowRight size={14} /> Prendre en charge
-            </button>
-          )}
-          {signalement.status === 'in_progress' && (
-            <button
-              className="sig-action-btn sig-action-close"
-              onClick={() => onStatusChange(signalement.id, 'closed')}
-            >
-              <CheckCircle size={14} /> Clôturer
-            </button>
-          )}
-          {(signalement.status === 'pending' || signalement.status === 'in_progress') && (
-            <button
-              className="sig-action-btn sig-action-reject"
-              onClick={() => onStatusChange(signalement.id, 'rejected')}
-            >
-              <XCircle size={14} /> Rejeter
-            </button>
-          )}
-        </div>
+
+        {rejectMode ? (
+          <div className="sig-reject-form">
+            <label>Motif du rejet *</label>
+            <textarea
+              className="sig-reject-textarea"
+              rows={3}
+              placeholder="Expliquez la raison du rejet…"
+              value={motifRejet}
+              onChange={(e) => setMotifRejet(e.target.value)}
+              autoFocus
+            />
+            <div className="sig-reject-actions">
+              <button className="sig-action-btn sig-action-cancel" onClick={resetForms}>
+                Annuler
+              </button>
+              <button
+                className="sig-action-btn sig-action-reject"
+                onClick={handleRejectConfirm}
+                disabled={!motifRejet.trim()}
+              >
+                <XCircle size={14} /> Confirmer le rejet
+              </button>
+            </div>
+          </div>
+        ) : closeMode ? (
+          <div className="sig-close-form">
+            <label>Photo de résolution (optionnel)</label>
+            <div className="sig-close-photo-input">
+              <Image size={14} />
+              <input
+                type="url"
+                className="sig-close-url-input"
+                placeholder="https://… ou laisser vide"
+                value={photoResolution}
+                onChange={(e) => setPhotoResolution(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="sig-reject-actions">
+              <button className="sig-action-btn sig-action-cancel" onClick={resetForms}>
+                Annuler
+              </button>
+              <button className="sig-action-btn sig-action-close" onClick={handleCloseConfirm}>
+                <CheckCircle size={14} /> Confirmer la clôture
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="sig-actions">
+            {signalement.status !== 'pending' && (
+              <button
+                className="sig-action-btn sig-action-reopen"
+                onClick={() => onStatusChange(signalement.id, 'pending')}
+              >
+                <RotateCcw size={14} /> Réouvrir
+              </button>
+            )}
+            {signalement.status === 'pending' && (
+              <button
+                className="sig-action-btn sig-action-progress"
+                onClick={() => onStatusChange(signalement.id, 'in_progress')}
+              >
+                <ArrowRight size={14} /> Prendre en charge
+              </button>
+            )}
+            {signalement.status === 'in_progress' && (
+              <button
+                className="sig-action-btn sig-action-close"
+                onClick={() => setCloseMode(true)}
+              >
+                <CheckCircle size={14} /> Clôturer
+              </button>
+            )}
+            {(signalement.status === 'pending' || signalement.status === 'in_progress') && (
+              <button
+                className="sig-action-btn sig-action-reject"
+                onClick={() => setRejectMode(true)}
+              >
+                <XCircle size={14} /> Rejeter
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* journal d'activité (accordéon) */}
+      {showAudit && (
+        <div className="sig-detail-section sig-audit-section">
+          <h3><History size={14} /> Journal d'activité</h3>
+          <SignalementAudit sigId={signalement.id} />
+        </div>
+      )}
     </div>
   );
 }

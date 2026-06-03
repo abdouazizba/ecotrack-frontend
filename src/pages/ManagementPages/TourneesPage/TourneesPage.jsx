@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getTournees, createTournee, updateTournee, deleteTournee,
-  updateTourneeStatus, addSignalementToTournee,
+  updateTourneeStatus, addSignalementToTournee, removeSignalementFromTournee,
   getSignalements, getAgents, getZones,
 } from '../../../services/api';
 import { genId } from './utils/constants';
@@ -26,6 +26,7 @@ export default function TourneesPage() {
   const [error, setError]                     = useState(null);
 
   const [showCreate, setShowCreate]           = useState(false);
+  const [editTarget, setEditTarget]           = useState(null);
   const [showAddSig, setShowAddSig]           = useState(false);
   const [assignTarget, setAssignTarget]       = useState(null);
 
@@ -79,8 +80,8 @@ export default function TourneesPage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCreateTournee = useCallback(async (formData) => {
     try {
-      const agent = agents.find((a) => a.id === formData.agent_id);
-      const zone  = zones.find((z) => z.id === formData.zone_id);
+      const agent = agents.find((a) => String(a.id) === String(formData.agent_id));
+      const zone  = zones.find((z) => String(z.id) === String(formData.zone_id));
       await createTournee({
         titre:      formData.titre || `Tournée ${zone?.nom || ''} — ${formData.date_prevue}`,
         zone_id:    formData.zone_id,
@@ -94,6 +95,25 @@ export default function TourneesPage() {
       setError('Erreur lors de la création de la tournée');
     }
   }, [agents, zones, loadTournees]);
+
+  const handleEditTournee = useCallback(async (formData) => {
+    if (!editTarget) return;
+    try {
+      const agent = agents.find((a) => String(a.id) === String(formData.agent_id));
+      const zone  = zones.find((z) => String(z.id) === String(formData.zone_id));
+      await updateTournee(editTarget.id, {
+        titre:      formData.titre || editTarget.titre,
+        zone_id:    formData.zone_id,
+        agent_id:   agent?.id || null,
+        date_prevue: formData.date_prevue,
+        status:     editTarget.status,
+      });
+      await loadTournees();
+      setEditTarget(null);
+    } catch {
+      setError('Erreur lors de la modification de la tournée');
+    }
+  }, [editTarget, agents, zones, loadTournees]);
 
   const handleDeleteTournee = useCallback(async (id) => {
     if (!window.confirm('Supprimer cette tournée ?')) return;
@@ -152,6 +172,11 @@ export default function TourneesPage() {
   }, [selectedId, allSignalements, loadTournees]);
 
   const handleRemoveSignalement = useCallback(async (sigId) => {
+    try {
+      await removeSignalementFromTournee(selectedId, sigId);
+    } catch {
+      // endpoint optionnel — on continue dans tous les cas
+    }
     setTournees((prev) =>
       prev.map((t) =>
         t.id === selectedId
@@ -215,6 +240,7 @@ export default function TourneesPage() {
             onAddSigClick={() => setShowAddSig(true)}
             onAssignClick={(sig) => setAssignTarget(sig)}
             onRemoveSignalement={handleRemoveSignalement}
+            onEditClick={(t) => setEditTarget(t)}
           />
         </div>
       </div>
@@ -223,13 +249,26 @@ export default function TourneesPage() {
         show={showCreate}
         zones={zones}
         agents={agents}
+        tournees={tournees}
         onClose={() => setShowCreate(false)}
         onSubmit={handleCreateTournee}
       />
 
+      <CreateTourneeModal
+        show={!!editTarget}
+        zones={zones}
+        agents={agents}
+        tournees={tournees}
+        initialData={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSubmit={handleEditTournee}
+      />
+
       <AddSignalementsModal
         show={showAddSig}
-        availableSigs={availableSigs}
+        allSigs={allSignalements}
+        tournees={tournees}
+        currentTourneeId={selectedId}
         onClose={() => setShowAddSig(false)}
         onSubmit={handleAddSignalements}
       />

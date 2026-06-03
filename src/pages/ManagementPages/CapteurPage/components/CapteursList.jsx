@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, BatteryLow, BatteryMedium, BatteryFull, Cpu } from 'lucide-react';
+import Pagination from '../../../../components/common/Pagination';
+
+const PAGE_SIZE = 20;
 
 const STATUT_META = {
   ACTIF:          { label: 'Actif',         color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
@@ -31,6 +34,12 @@ export default function CapteursList({
   capteurs, selectedId, filter, loading,
   onSelect, onFilterChange, onCreate,
 }) {
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [capteurs]);
+
+  const totalPages = Math.ceil(capteurs.length / PAGE_SIZE);
+  const paged = capteurs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <div className="cap-left">
       <div className="cap-left-header">
@@ -61,7 +70,7 @@ export default function CapteursList({
           </p>
         )}
 
-        {capteurs.map((cap) => {
+        {paged.map((cap) => {
           const statut = STATUT_META[cap.statut] || STATUT_META.INACTIF;
           const type   = TYPE_META[cap.type]   || { label: cap.type, color: '#64748b', bg: 'rgba(100,116,139,0.1)' };
 
@@ -97,6 +106,13 @@ export default function CapteursList({
           );
         })}
       </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={capteurs.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

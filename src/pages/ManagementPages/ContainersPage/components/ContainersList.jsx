@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Plus } from 'lucide-react';
+import Pagination from '../../../../components/common/Pagination';
+
+const PAGE_SIZE = 20;
 
 const TYPE_META = {
   standard:  { label: 'Standard',   color: '#0d9488', bg: 'rgba(13,148,136,0.12)' },
@@ -39,6 +42,11 @@ export default function ContainersList({
   containers, zones, selectedId, filter, search, loading,
   onSelect, onFilterChange, onSearchChange, onCreateClick,
 }) {
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [containers]);
+
+  const totalPages = Math.ceil(containers.length / PAGE_SIZE);
+  const paged = containers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const zoneMap = Object.fromEntries(zones.map((z) => [z.id, z.nom || z.name]));
 
   return (
@@ -79,7 +87,7 @@ export default function ContainersList({
         {!loading && containers.length === 0 && (
           <p className="cnt-empty">Aucun conteneur trouvé</p>
         )}
-        {containers.map((c) => {
+        {paged.map((c) => {
           const type = TYPE_META[c.type] || TYPE_META.standard;
           const status = STATUS_META[c.status] || STATUS_META.actif;
           return (
@@ -87,6 +95,7 @@ export default function ContainersList({
               key={c.id}
               className={`cnt-card ${selectedId === c.id ? 'active' : ''}`}
               onClick={() => onSelect(c.id)}
+              style={{ borderLeft: `3px solid ${status.color}` }}
             >
               <div className="cntc-top">
                 <div className="cntc-icon" style={{ background: type.bg, color: type.color }}>
@@ -105,6 +114,13 @@ export default function ContainersList({
           );
         })}
       </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={containers.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

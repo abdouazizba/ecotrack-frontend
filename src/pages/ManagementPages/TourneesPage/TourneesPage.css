@@ -712,3 +712,154 @@
 }
 
 .tai-check { color: #10b981; margin-left: auto; }
+
+/* ── Modal split layout ─────────────────────────── */
+.modal-split {
+  display: flex;
+  max-width: 680px !important;
+}
+
+.modal-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Progress bar ──────────────────────────────── */
+.tr-progress {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.tr-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.tr-progress-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tr-progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease, background 0.3s;
+}
+
+/* ── Completion banner ─────────────────────────── */
+.tr-completion-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  margin-bottom: 16px;
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 10px;
+  color: #059669;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tr-completion-banner button {
+  margin-left: auto;
+  padding: 6px 14px;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+
+.tr-completion-banner button:hover { opacity: 0.88; }
+
+/* ── Edit button ───────────────────────────────── */
+.tr-btn-edit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 8px;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tr-btn-edit:hover { background: rgba(59,130,246,0.15); }
+
+/* ── Conflict warning ──────────────────────────── */
+.t-conflict-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.t-conflict-warning svg { flex-shrink: 0; color: #f59e0b; margin-top: 1px; }
+
+/* ── AddSignalementsModal : déjà assignés ──────── */
+.t-sig-divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-top: 1px solid #fef3c7;
+  margin-top: 6px;
+}
+
+.t-sig-pick-item--assigned {
+  opacity: 0.75;
+  border-style: dashed;
+  border-color: rgba(245,158,11,0.3) !important;
+  background: rgba(245,158,11,0.04) !important;
+}
+
+.t-sig-pick-item--assigned.checked {
+  opacity: 1;
+  border-color: rgba(245,158,11,0.5) !important;
+  background: rgba(245,158,11,0.1) !important;
+}
+
+.tspi-assigned-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(245,158,11,0.12);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #92400e;
+  white-space: nowrap;
+}
