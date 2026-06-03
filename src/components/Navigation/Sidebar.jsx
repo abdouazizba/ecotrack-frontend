@@ -8,6 +8,7 @@ import useAuthStore from '../../store/authStore';
 import './Sidebar.css';
 
 // ── Menu structure grouped by category ───────────────────────────
+// badge: number > 0 affiche un compteur sur le lien
 const MENU_GROUPS = [
   {
     label: 'Général',
@@ -25,24 +26,20 @@ const MENU_GROUPS = [
   {
     label: 'Logistique',
     items: [
-      {
-        icon: Route,
-        label: 'Tournées',
-        id: 'tournees',
-        path: '/tournees',
-      },
+      { icon: Route, label: 'Tournées', id: 'tournees', path: '/tournees' },
       {
         icon: AlertCircle,
         label: 'Signalements',
         id: 'signals',
         path: '/signalements',
+        badge: 5,
         submenu: [
           { label: 'Tous les signalements', path: '/signalements' },
           { label: 'Signalements Agents',   path: '/signalements/agents' },
           { label: 'Signalements Citoyens', path: '/signalements/citoyens' },
         ],
       },
-      { icon: Cpu, label: 'Capteurs', id: 'capteurs', path: '/capteurs' },
+      { icon: Cpu, label: 'Capteurs', id: 'capteurs', path: '/capteurs', badge: 2 },
     ],
   },
   {
@@ -71,33 +68,12 @@ export default function Sidebar() {
 
   return (
     <div className={`sidebar ${isOpen ? 'open' : 'collapsed'}`}>
-      {/* ── Logo ── */}
+      {/* ── Toggle ── */}
       <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <img src="/Logo-Ecotrack.png" alt="EcoBeast" className="logo-image" />
-          {isOpen && <span className="logo-text">EcoBeast</span>}
-        </div>
         <button onClick={() => setIsOpen(!isOpen)} className="toggle-btn">
           {isOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
       </div>
-
-      {/* ── User chip ── */}
-      {isOpen && (
-        <div className="sidebar-user">
-          <div className="user-chip">
-            {(user?.firstName?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-          </div>
-          <div className="user-meta">
-            <p className="user-name">
-              {user?.firstName && user?.lastName
-                ? `${user.firstName} ${user.lastName}`
-                : user?.email?.split('@')[0] || 'Utilisateur'}
-            </p>
-            <p className="user-role">{user?.role === 'admin' ? 'Admin' : 'Agent'}</p>
-          </div>
-        </div>
-      )}
 
       {/* ── Menu ── */}
       <nav className="sidebar-menu">
@@ -121,33 +97,35 @@ export default function Sidebar() {
                     {isOpen && (
                       <>
                         <span>{item.label}</span>
+                        {item.badge > 0 && (
+                          <span className="menu-item-badge">
+                            {item.badge > 99 ? '99+' : item.badge}
+                          </span>
+                        )}
                         {item.submenu && (
                           <ChevronDown
                             size={14}
-                            style={{
-                              transform: expanded ? 'rotate(180deg)' : 'rotate(0)',
-                              transition: 'transform 0.25s',
-                              marginLeft: 'auto',
-                              opacity: 0.6,
-                            }}
+                            className={`submenu-chevron ${expanded ? 'rotated' : ''}`}
                           />
                         )}
                       </>
                     )}
                   </button>
 
-                  {item.submenu && isOpen && expanded && (
-                    <div className="submenu">
-                      {item.submenu.map((sub) => (
-                        <button
-                          key={sub.path}
-                          onClick={() => navigate(sub.path)}
-                          className={`submenu-item ${location.pathname === sub.path ? 'active' : ''}`}
-                        >
-                          <div className="submenu-dot" />
-                          <span>{sub.label}</span>
-                        </button>
-                      ))}
+                  {item.submenu && isOpen && (
+                    <div className={`submenu ${expanded ? 'expanded' : ''}`}>
+                      <div className="submenu-inner">
+                        {item.submenu.map((sub) => (
+                          <button
+                            key={sub.path}
+                            onClick={() => navigate(sub.path)}
+                            className={`submenu-item ${location.pathname === sub.path ? 'active' : ''}`}
+                          >
+                            <div className="submenu-dot" />
+                            <span>{sub.label}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

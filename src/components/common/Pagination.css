@@ -1,0 +1,75 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.pagination-info {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.pg-num {
+  width: 30px;
+  height: 30px;
+}
+
+.pg-arrow {
+  width: 28px;
+  height: 30px;
+}
+
+.pg-btn:hover:not(:disabled):not(.active) {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16,185,129,0.06);
+}
+
+.pg-btn.active {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+  cursor: default;
+}
+
+.pg-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pg-ellipsis {
+  width: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 30px;
+  user-select: none;
+}

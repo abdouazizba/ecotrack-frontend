@@ -4,6 +4,49 @@ import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 import './Navbar.css';
 
+const WMO_ICON = (code) => {
+  if (code === 0)                  return '☀️';
+  if (code <= 3)                   return '⛅';
+  if (code <= 48)                  return '🌫️';
+  if (code <= 67 || (code >= 80 && code <= 82)) return '🌧️';
+  if (code <= 77)                  return '❄️';
+  return '⛈️';
+};
+
+function WeatherWidget() {
+  const [weather, setWeather] = useState(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      try {
+        const { latitude: lat, longitude: lon } = coords;
+        const [meteo, geo] = await Promise.all([
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`).then(r => r.json()),
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r => r.json()),
+        ]);
+        setWeather({
+          temp: Math.round(meteo.current.temperature_2m),
+          icon: WMO_ICON(meteo.current.weather_code),
+          city: geo.address?.city || geo.address?.town || geo.address?.village || '',
+        });
+      } catch {}
+    }, () => {});
+  }, []);
+
+  if (!weather) return null;
+
+  return (
+    <div className="weather-widget">
+      <span className="weather-icon">{weather.icon}</span>
+      <div className="weather-info">
+        {weather.city && <span className="weather-city">{weather.city}</span>}
+        <span className="weather-temp">{weather.temp}°C</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar({ onLogout }) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -61,6 +104,7 @@ export default function Navbar({ onLogout }) {
         </div>
 
         <div className="navbar-right">
+          <WeatherWidget />
           <button className="icon-btn"><Bell size={18} /></button>
 
           {/* ── user dropdown ── */}

@@ -20,13 +20,15 @@
 
 /* ── Header ── */
 .sidebar-header {
-  padding: 16px 14px;
+  padding: 14px 14px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-end;
   flex-shrink: 0;
+}
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
 }
 .sidebar-logo {
   display: flex;
@@ -184,18 +186,48 @@
   text-overflow: ellipsis;
   font-size: 12.5px;
 }
+.menu-item-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: #10b981;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.menu-item.active .menu-item-badge {
+  background: #fff;
+  color: #059669;
+}
 
 /* ── Submenu ── */
 .submenu {
-  padding: 4px 0 4px 14px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
   margin-left: 14px;
   border-left: 1px solid rgba(16,185,129,0.18);
-  animation: sbSlide 0.22s ease;
+  transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
 }
-@keyframes sbSlide {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+.submenu.expanded {
+  max-height: 240px;
+  opacity: 1;
 }
+.submenu-inner {
+  padding: 4px 0 4px 14px;
+}
+.submenu-chevron {
+  color: rgba(255,255,255,0.4);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+.submenu-chevron.rotated { transform: rotate(180deg); }
 .submenu-item {
   display: flex;
   align-items: center;

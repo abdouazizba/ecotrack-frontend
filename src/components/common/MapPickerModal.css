@@ -1,0 +1,130 @@
+/* ── Overlay ── */
+.mpm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 20px;
+}
+
+/* ── Modal container ── */
+.mpm-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.mpm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+.mpm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.mpm-header-left svg { color: #10b981; }
+.mpm-close {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: #f1f5f9; border: none; border-radius: 7px;
+  color: #64748b; cursor: pointer; transition: background 0.15s;
+}
+.mpm-close:hover { background: #e2e8f0; }
+
+/* ── Hint ── */
+.mpm-hint {
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin: 0;
+  padding: 7px 18px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+/* ── Map ── */
+.mpm-map-wrap {
+  height: 380px;
+  flex-shrink: 0;
+  position: relative;
+}
+.mpm-map-wrap .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* ── Footer ── */
+.mpm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+.mpm-coords {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+.mpm-coord-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.mpm-coord-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+}
+.mpm-coord-sep {
+  width: 1px; height: 14px;
+  background: #e2e8f0;
+  margin: 0 4px;
+}
+.mpm-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mpm-btn-cancel {
+  padding: 7px 14px;
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  border-radius: 8px; color: #64748b;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: background 0.15s;
+}
+.mpm-btn-cancel:hover { background: #e2e8f0; }
+.mpm-btn-confirm {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none; border-radius: 8px;
+  color: #fff; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: opacity 0.2s;
+}
+.mpm-btn-confirm:hover:not(:disabled) { opacity: 0.88; }
+.mpm-btn-confirm:disabled { opacity: 0.45; cursor: not-allowed; }

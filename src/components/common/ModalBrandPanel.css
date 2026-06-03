@@ -1,0 +1,115 @@
+/* ── Shared two-column modal layout ── */
+.modal-split {
+  display: flex !important;
+  flex-direction: row !important;
+  max-width: 760px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ── Brand panel (left) ── */
+.modal-brand {
+  width: 230px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, #0f172a 0%, #1a2744 60%, #1e293b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 24px;
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid rgba(16,185,129,0.15);
+}
+
+/* Decorative circles */
+.mbd-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: #10b981;
+  pointer-events: none;
+}
+.mbd-c1 { width: 200px; height: 200px; opacity: 0.06; top: -70px; right: -70px; }
+.mbd-c2 { width: 140px; height: 140px; opacity: 0.05; bottom: -50px; left: -50px; }
+.mbd-c3 { width: 70px;  height: 70px;  opacity: 0.08; bottom: 60px; right: -20px; background: #34d399; }
+
+/* Inner content */
+.modal-brand-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.modal-brand-logo {
+  width: 68px;
+  height: 68px;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.4), 0 8px 28px rgba(0,0,0,0.35);
+  margin-bottom: 4px;
+}
+
+.modal-brand-name {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.3px;
+}
+
+.modal-brand-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.38);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.modal-brand-divider {
+  width: 36px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(16,185,129,0.5), transparent);
+  margin: 6px 0;
+}
+
+.modal-brand-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.modal-brand-tags span {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 6px;
+  padding: 5px 10px;
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+/* ── Right panel (form content) ── */
+.modal-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Responsive: hide brand on small screens ── */
+@media (max-width: 600px) {
+  .modal-split { max-width: 100% !important; flex-direction: column !important; }
+  .modal-brand { width: 100%; min-height: 130px; padding: 20px 24px; flex-direction: row; gap: 16px; }
+  .modal-brand-inner { flex-direction: row; text-align: left; flex-wrap: wrap; }
+  .modal-brand-logo { width: 44px; height: 44px; }
+  .modal-brand-name { font-size: 16px; }
+  .modal-brand-sub, .modal-brand-divider, .modal-brand-tags { display: none; }
+}
