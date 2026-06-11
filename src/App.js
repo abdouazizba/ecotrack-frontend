@@ -14,8 +14,8 @@ import SignalementsAgentsPage from './pages/ManagementPages/SignalementsPage/Sig
 import SignalementsCitoyensPage from './pages/ManagementPages/SignalementsPage/SignalementsCitoyensPage';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import Sidebar from './components/Navigation/Sidebar';
-import Navbar from './components/Navigation/Navbar';
+import Sidebar from './components/navigation/Sidebar';
+import Navbar from './components/navigation/Navbar';
 
 // Citizen portal
 import CitoyenPortal from './pages/CitoyenPortal/CitoyenPortal';
