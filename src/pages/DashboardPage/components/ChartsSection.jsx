@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import ChartCard from '../../../components/charts/ChartCard';
+import ChartCard from '../../../components/Charts/ChartCard';
 
 // ── palette ─────────────────────────────────────────────────────────────────
 const COLORS = {

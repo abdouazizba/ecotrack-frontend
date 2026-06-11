@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import EchartsStatCard from '../../../components/charts/EchartsStatCard';
+import EchartsStatCard from '../../../components/Charts/EchartsStatCard';
 
 export default function StatsSection({ containers, signalements, zones, agents, dashboardStats = {}, loading }) {
   const stats = useMemo(() => {
