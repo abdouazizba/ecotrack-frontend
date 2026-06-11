@@ -144,7 +144,7 @@ export default function SignalementDetail({ signalement, agents = [], onStatusCh
         <div className="sig-detail-photo">
           <img
             src={signalement.photo_url}
-            alt="Photo du signalement"
+            alt="Signalement"
             onError={(e) => { e.target.parentElement.style.display = 'none'; }}
           />
         </div>

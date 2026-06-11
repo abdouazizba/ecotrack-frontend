@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import { createSignalement, uploadSignalementPhoto, getNearbyContainers } from '../../../services/api';
-import { AlertCircle, Camera, X, CheckCircle, MapPin, Navigation, ChevronRight } from 'lucide-react';
+import { AlertCircle, Camera, X, MapPin, ChevronRight } from 'lucide-react';
 
 // Leaflet icon fix
 delete L.Icon.Default.prototype._getIconUrl;

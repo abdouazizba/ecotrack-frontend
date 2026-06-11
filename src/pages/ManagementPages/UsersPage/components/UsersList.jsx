@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, UserCheck, User } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Pagination from '../../../../components/common/Pagination';
 
 const PAGE_SIZE = 20;

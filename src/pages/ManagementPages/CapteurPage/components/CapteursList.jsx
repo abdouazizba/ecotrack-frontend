@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, BatteryLow, BatteryMedium, BatteryFull, Cpu } from 'lucide-react';
+import { Plus, BatteryLow, BatteryMedium, BatteryFull } from 'lucide-react';
 import Pagination from '../../../../components/common/Pagination';
 
 const PAGE_SIZE = 20;

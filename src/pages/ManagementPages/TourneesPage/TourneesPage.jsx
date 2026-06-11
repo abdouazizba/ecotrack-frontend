@@ -4,7 +4,6 @@ import {
   updateTourneeStatus, addSignalementToTournee, removeSignalementFromTournee,
   getSignalements, getAgents, getZones,
 } from '../../../services/api';
-import { genId } from './utils/constants';
 import {
   TourneesList,
   TourneeDetail,
@@ -72,10 +71,6 @@ export default function TourneesPage() {
     () => new Set(tournees.flatMap((t) => (t.signalements || []).map((s) => s.id))),
     [tournees]
   );
-  const availableSigs = useMemo(
-    () => allSignalements.filter((s) => !usedSigIds.has(s.id)),
-    [allSignalements, usedSigIds]
-  );
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCreateTournee = useCallback(async (formData) => {
@@ -100,7 +95,6 @@ export default function TourneesPage() {
     if (!editTarget) return;
     try {
       const agent = agents.find((a) => String(a.id) === String(formData.agent_id));
-      const zone  = zones.find((z) => String(z.id) === String(formData.zone_id));
       await updateTournee(editTarget.id, {
         titre:      formData.titre || editTarget.titre,
         zone_id:    formData.zone_id,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getSignalements, patchSignalement, deleteSignalement } from '../../../../services/api';
-import { Edit2, Trash2, Eye, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Trash2, Eye, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import './SignalementsKanban.css';
 
 const STATUSES = [
@@ -26,7 +26,7 @@ export default function SignalementsKanban({ initialSource = 'all', title = 'Ges
   // Charger les signalements
   useEffect(() => {
     loadSignalements();
-  }, []);
+  }, [loadSignalements]);
 
   const loadSignalements = useCallback(async () => {
     try {
@@ -220,7 +220,7 @@ function SignalementCard({ signalement, status, onStatusChange, onDelete, onView
           <div className="card-image">
             <img 
               src={signalement.photo} 
-              alt="Photo du signalement"
+              alt="Signalement"
               onError={(e) => e.target.style.display = 'none'}
             />
           </div>

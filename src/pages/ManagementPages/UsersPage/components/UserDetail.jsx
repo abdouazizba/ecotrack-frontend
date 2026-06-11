@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2, Mail, Phone, Calendar, Shield } from 'lucide-react';
+import { Edit2, Trash2, Mail, Calendar, Shield } from 'lucide-react';
 import { UserAvatar } from './UsersList';
 
 const ROLE_META = {

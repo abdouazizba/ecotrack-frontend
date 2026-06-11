@@ -113,14 +113,13 @@ export default function ProfilPage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => { load(); }, [load]);
 
   const pts    = calcPoints(sigs);
   const level  = getLevel(pts);
   const next   = getNextLevel(pts);
-  const badges = BADGES.filter((b) => b.cond(sigs));
   const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '?';
   const myRank = leaderboard.findIndex((b) => b.id === user?.id) + 1;
 
