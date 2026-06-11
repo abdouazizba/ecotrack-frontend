@@ -65,8 +65,8 @@ export const transformZoneToFrontend = (backendData) => {
     code_zone: backendData.code_zone,
     description: backendData.description,
     population_estimee: backendData.population_estimee || 0,
-    latitude: backendData.latitude || 0,
-    longitude: backendData.longitude || 0,
+    latitude: parseFloat(backendData.latitude) || 0,
+    longitude: parseFloat(backendData.longitude) || 0,
     is_active: backendData.is_active ?? true,
     geometrie: backendData.geometrie,
     created_at: backendData.createdAt || backendData.created_at,
@@ -97,8 +97,8 @@ export const transformConteneurToFrontend = (backendData) => {
   const containerId = backendData.id || backendData._id || 'unknown';
 
   // Le back peut renvoyer latitude/longitude à plat OU imbriqué dans localisation{}
-  const lat = backendData.latitude ?? backendData.localisation?.latitude ?? 0;
-  const lng = backendData.longitude ?? backendData.localisation?.longitude ?? 0;
+  const lat = parseFloat(backendData.latitude ?? backendData.localisation?.latitude) || 0;
+  const lng = parseFloat(backendData.longitude ?? backendData.localisation?.longitude) || 0;
 
   return {
     id: containerId,
