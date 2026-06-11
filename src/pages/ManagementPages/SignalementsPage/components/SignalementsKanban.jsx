@@ -23,11 +23,6 @@ export default function SignalementsKanban({ initialSource = 'all', title = 'Ges
   const [selectedSignalement, setSelectedSignalement] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Charger les signalements
-  useEffect(() => {
-    loadSignalements();
-  }, [loadSignalements]);
-
   const loadSignalements = useCallback(async () => {
     try {
       setLoading(true);
@@ -41,6 +36,11 @@ export default function SignalementsKanban({ initialSource = 'all', title = 'Ges
       setLoading(false);
     }
   }, []);
+
+  // Charger les signalements
+  useEffect(() => {
+    loadSignalements();
+  }, [loadSignalements]);
 
   // Filtrer par source
   const filteredSignalements = useMemo(() => {
@@ -271,7 +271,7 @@ function SignalementModal({ signalement, onClose, onDelete }) {
 
         <div className="modal-body">
           {signalement.photo && (
-            <img src={signalement.photo} alt="Photo" className="modal-image" />
+            <img src={signalement.photo} alt="Signalement" className="modal-image" />
           )}
 
           <div className="detail-grid">

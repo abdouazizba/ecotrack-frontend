@@ -67,10 +67,6 @@ export default function TourneesPage() {
     [tournees, filter]
   );
 
-  const usedSigIds = useMemo(
-    () => new Set(tournees.flatMap((t) => (t.signalements || []).map((s) => s.id))),
-    [tournees]
-  );
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCreateTournee = useCallback(async (formData) => {
@@ -107,7 +103,7 @@ export default function TourneesPage() {
     } catch {
       setError('Erreur lors de la modification de la tournée');
     }
-  }, [editTarget, agents, zones, loadTournees]);
+  }, [editTarget, agents, loadTournees]);
 
   const handleDeleteTournee = useCallback(async (id) => {
     if (!window.confirm('Supprimer cette tournée ?')) return;
