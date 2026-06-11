@@ -1,18 +1,23 @@
 import React, { useMemo } from 'react';
 import EchartsStatCard from '../../../components/charts/EchartsStatCard';
 
-export default function StatsSection({ containers, signalements, zones, agents, loading }) {
+export default function StatsSection({ containers, signalements, zones, agents, dashboardStats = {}, loading }) {
   const stats = useMemo(() => {
-    // ── conteneurs ──
-    const totalContainers = containers.length;
-    const validFill = containers.filter((c) => c.fillLevel != null);
-    const avgFillRate = validFill.length
-      ? Math.round(validFill.reduce((s, c) => s + (c.fillLevel || 0), 0) / validFill.length)
-      : 0;
-    const criticalContainers = containers.filter((c) => (c.fillLevel || 0) > 80).length;
-    const maintenanceContainers = containers.filter(
-      (c) => c.status === 'maintenance' || c.status === 'retire'
-    ).length;
+    // ── conteneurs — use DB totals from stats endpoint when available ──
+    const totalContainers = dashboardStats.containers ?? containers.length;
+    const avgFillRate = dashboardStats.averageFillRate != null
+      ? Math.round(dashboardStats.averageFillRate)
+      : (() => {
+          const validFill = containers.filter((c) => c.fillLevel != null);
+          return validFill.length
+            ? Math.round(validFill.reduce((s, c) => s + (c.fillLevel || 0), 0) / validFill.length)
+            : 0;
+        })();
+    const criticalContainers = dashboardStats.criticalContainers
+      ?? containers.filter((c) => (c.fillLevel || 0) > 80).length;
+    const statusBreakdown = dashboardStats.containerBreakdown?.status || {};
+    const maintenanceContainers = (statusBreakdown.maintenance ?? 0) + (statusBreakdown.retire ?? 0)
+      || containers.filter((c) => c.status === 'maintenance' || c.status === 'retire').length;
 
     // ── zones ──
     const totalZones = zones.length;
@@ -36,7 +41,7 @@ export default function StatsSection({ containers, signalements, zones, agents, 
       pendingSig, inProgressSig, closedSig, tauxResolution,
       activeAgents,
     };
-  }, [containers, signalements, zones, agents]);
+  }, [containers, signalements, zones, agents, dashboardStats]);
 
   if (loading) {
     return (
