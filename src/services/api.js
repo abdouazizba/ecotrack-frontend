@@ -74,9 +74,6 @@ export const loginUser = async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
     const data = response.data;
 
-    // DEBUG TEMPORAIRE — à retirer après confirmation de la structure réelle
-    console.log('=== LOGIN RAW RESPONSE ===', JSON.stringify(data, null, 2));
-
     // Essaie toutes les structures connues
     const user = data.user || data.data?.user || data.data;
     const accessToken = data.accessToken || data.tokens?.accessToken || data.access_token || data.token;
@@ -115,6 +112,16 @@ export const logoutUser = async () => {
 export const verifyToken = async () => {
   const response = await api.post('/auth/verify');
   return response.data;
+};
+
+export const getDashboardStats = async () => {
+  try {
+    const response = await api.get('/dashboard/stats');
+    return response.data?.data || {};
+  } catch (err) {
+    console.error('Error fetching dashboard stats:', err.message);
+    return {};
+  }
 };
 
 // ============================================
@@ -475,6 +482,392 @@ export const assignCapteurToConteneur = async (id, id_conteneur) => {
 export const updateCapteurBatterie = async (id, batterie) => {
   const response = await api.patch(`/capteurs/${id}/batterie`, { batterie });
   return transformCapteurToFrontend(extractSingle(response.data, 'capteur'));
+};
+
+// ============================================
+// CONTAINERS - Extras
+// ============================================
+
+export const getNearbyContainers = async ({ lat, lng, radius = 5 }) => {
+  try {
+    const response = await api.get('/conteneurs/nearby', { params: { lat, lng, radius } });
+    const conteneurs = extractArray(response.data, 'conteneurs');
+    return transformConteneurArrayToFrontend(conteneurs).map((c, i) => ({
+      ...c,
+      distanceKm: conteneurs[i]?.distance_km ?? null,
+    }));
+  } catch (err) {
+    console.error('Error fetching nearby containers:', err.message);
+    throw err;
+  }
+};
+
+export const getContainersNeedingService = async () => {
+  try {
+    const response = await api.get('/conteneurs/needs-service');
+    return transformConteneurArrayToFrontend(extractArray(response.data, 'conteneurs'));
+  } catch (err) {
+    console.error('Error fetching containers needing service:', err.message);
+    throw err;
+  }
+};
+
+// ============================================
+// MESURES
+// ============================================
+
+export const getMesuresConteneur = async (conteneurId) => {
+  try {
+    const response = await api.get(`/mesures/conteneur/${conteneurId}`);
+    return extractArray(response.data, 'mesures');
+  } catch (err) {
+    console.error('Error fetching mesures:', err.message);
+    throw err;
+  }
+};
+
+export const getLatestMesureConteneur = async (conteneurId) => {
+  try {
+    const response = await api.get(`/mesures/conteneur/${conteneurId}/latest`);
+    return extractSingle(response.data, 'mesure');
+  } catch (err) {
+    console.error('Error fetching latest mesure:', err.message);
+    throw err;
+  }
+};
+
+export const getStatsMesuresConteneur = async (conteneurId) => {
+  try {
+    const response = await api.get(`/mesures/conteneur/${conteneurId}/stats`);
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching mesure stats:', err.message);
+    throw err;
+  }
+};
+
+// ============================================
+// CONTAINER STATS
+// ============================================
+
+export const getContainerStatsDashboard = async () => {
+  try {
+    const response = await api.get('/container-stats/dashboard');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching container stats dashboard:', err.message);
+    return {};
+  }
+};
+
+export const getContainerBreakdownByStatus = async () => {
+  try {
+    const response = await api.get('/container-stats/breakdown/status');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching container breakdown by status:', err.message);
+    return [];
+  }
+};
+
+export const getContainerBreakdownByType = async () => {
+  try {
+    const response = await api.get('/container-stats/breakdown/type');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching container breakdown by type:', err.message);
+    return [];
+  }
+};
+
+// ============================================
+// SIGNALEMENTS - Extras
+// ============================================
+
+export const getSignalementsOuverts = async () => {
+  try {
+    const response = await api.get('/signalements/open');
+    return transformSignalementsArrayToFrontend(extractArray(response.data, 'signalements'));
+  } catch (err) {
+    console.error('Error fetching open signalements:', err.message);
+    throw err;
+  }
+};
+
+export const getSignalementsCitoyen = async (citoyenId) => {
+  try {
+    const response = await api.get(`/signalements/citoyen/${citoyenId}`);
+    return transformSignalementsArrayToFrontend(extractArray(response.data, 'signalements'));
+  } catch (err) {
+    console.error('Error fetching citoyen signalements:', err.message);
+    throw err;
+  }
+};
+
+export const getSignalementsContainer = async (containerId) => {
+  try {
+    const response = await api.get(`/signalements/container/${containerId}`);
+    return transformSignalementsArrayToFrontend(extractArray(response.data, 'signalements'));
+  } catch (err) {
+    console.error('Error fetching container signalements:', err.message);
+    throw err;
+  }
+};
+
+export const uploadSignalementPhoto = async (id, file) => {
+  try {
+    const formData = new FormData();
+    formData.append('photo', file);
+    const response = await api.post(`/signalements/${id}/photo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error uploading signalement photo:', err.message);
+    throw err;
+  }
+};
+
+// ============================================
+// SIGNAL STATS
+// ============================================
+
+export const getSignalStatsDashboard = async () => {
+  try {
+    const response = await api.get('/signal-stats/dashboard');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching signal stats dashboard:', err.message);
+    return {};
+  }
+};
+
+export const getSignalBreakdownByStatus = async () => {
+  try {
+    const response = await api.get('/signal-stats/breakdown/status');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching signal breakdown by status:', err.message);
+    return [];
+  }
+};
+
+export const getSignalBreakdownByPriority = async () => {
+  try {
+    const response = await api.get('/signal-stats/breakdown/priority');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching signal breakdown by priority:', err.message);
+    return [];
+  }
+};
+
+// ============================================
+// USERS - Extras
+// ============================================
+
+export const getUserProfile = async (id) => {
+  try {
+    const response = await api.get(`/users/${id}/profile`);
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching user profile:', err.message);
+    throw err;
+  }
+};
+
+// ============================================
+// TOURNÉES - Extras
+// ============================================
+
+export const getTourneesByAgent = async (agentId) => {
+  try {
+    const response = await api.get(`/tournees/agent/${agentId}`);
+    return transformTourneesArrayToFrontend(extractArray(response.data, 'tournees'));
+  } catch (err) {
+    console.error('Error fetching agent tournees:', err.message);
+    throw err;
+  }
+};
+
+export const getTourneeStats = async (id) => {
+  try {
+    const response = await api.get(`/tournees/${id}/stats`);
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching tournee stats:', err.message);
+    throw err;
+  }
+};
+
+export const assignAgentToTournee = async (tourneeId, agentId, role) => {
+  try {
+    const response = await api.post(`/tournees/${tourneeId}/agents`, { idAgent: agentId, role });
+    return response.data;
+  } catch (err) {
+    console.error('Error assigning agent to tournee:', err.message);
+    throw err;
+  }
+};
+
+export const removeAgentFromTournee = async (tourneeId, agentId) => {
+  try {
+    await api.delete(`/tournees/${tourneeId}/agents/${agentId}`);
+  } catch (err) {
+    console.error('Error removing agent from tournee:', err.message);
+    throw err;
+  }
+};
+
+// ============================================
+// TOUR STATS
+// ============================================
+
+export const getTourStatsDashboard = async () => {
+  try {
+    const response = await api.get('/tour-stats/dashboard');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching tour stats dashboard:', err.message);
+    return {};
+  }
+};
+
+export const getTourBreakdownByStatus = async () => {
+  try {
+    const response = await api.get('/tour-stats/breakdown/status');
+    return response.data?.data || response.data;
+  } catch (err) {
+    console.error('Error fetching tour breakdown by status:', err.message);
+    return [];
+  }
+};
+
+// ============================================
+// COLLECTEURS
+// ============================================
+
+export const getCollecteurs = async () => {
+  try {
+    const response = await api.get('/collecteurs');
+    return extractArray(response.data, 'collecteurs');
+  } catch (err) {
+    console.error('Error fetching collecteurs:', err.message);
+    throw err;
+  }
+};
+
+export const getCollecteur = async (id) => {
+  try {
+    const response = await api.get(`/collecteurs/${id}`);
+    return extractSingle(response.data, 'collecteur');
+  } catch (err) {
+    console.error('Error fetching collecteur:', err.message);
+    throw err;
+  }
+};
+
+export const createCollecteur = async (data) => {
+  try {
+    const response = await api.post('/collecteurs', data);
+    return extractSingle(response.data, 'collecteur');
+  } catch (err) {
+    console.error('Error creating collecteur:', err.message);
+    throw err;
+  }
+};
+
+export const updateCollecteur = async (id, data) => {
+  try {
+    const response = await api.put(`/collecteurs/${id}`, data);
+    return extractSingle(response.data, 'collecteur');
+  } catch (err) {
+    console.error('Error updating collecteur:', err.message);
+    throw err;
+  }
+};
+
+export const deleteCollecteur = async (id) => {
+  try {
+    await api.delete(`/collecteurs/${id}`);
+  } catch (err) {
+    console.error('Error deleting collecteur:', err.message);
+    throw err;
+  }
+};
+
+export const getCollecteursByAgent = async (agentId) => {
+  try {
+    const response = await api.get(`/collecteurs/agent/${agentId}`);
+    return extractArray(response.data, 'collecteurs');
+  } catch (err) {
+    console.error('Error fetching agent collecteurs:', err.message);
+    throw err;
+  }
+};
+
+export const getLowBatteryCollecteurs = async () => {
+  try {
+    const response = await api.get('/collecteurs/low-battery');
+    return extractArray(response.data, 'collecteurs');
+  } catch (err) {
+    console.error('Error fetching low battery collecteurs:', err.message);
+    throw err;
+  }
+};
+
+export const addCollecteurMaintenance = async (id, notes = '') => {
+  try {
+    const response = await api.post(`/collecteurs/${id}/maintenance`, notes ? { notes } : {});
+    return response.data;
+  } catch (err) {
+    console.error('Error adding collecteur maintenance:', err.message);
+    throw err;
+  }
+};
+
+// ============================================
+// IOT
+// ============================================
+
+export const sendIotMeasure = async (data) => {
+  try {
+    const response = await api.post('/iot/measure', data);
+    return response.data;
+  } catch (err) {
+    console.error('Error sending IoT measure:', err.message);
+    throw err;
+  }
+};
+
+export const registerIotDevice = async (data) => {
+  try {
+    const response = await api.post('/iot/device/register', data);
+    return response.data;
+  } catch (err) {
+    console.error('Error registering IoT device:', err.message);
+    throw err;
+  }
+};
+
+export const getIotDevice = async (capteurId) => {
+  try {
+    const response = await api.get(`/iot/device/${capteurId}`);
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching IoT device:', err.message);
+    throw err;
+  }
+};
+
+export const getIotStatus = async () => {
+  try {
+    const response = await api.get('/iot/status');
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching IoT status:', err.message);
+    return null;
+  }
 };
 
 export default api;
