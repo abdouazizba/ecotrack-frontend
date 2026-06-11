@@ -1,61 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Package, AlertCircle, Menu, X,
   LogOut, Home, ChevronDown, Route, Users, Map, Cpu,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import { getSignalementsOuverts, getCapteurs } from '../../services/api';
 import './Sidebar.css';
-
-// ── Menu structure grouped by category ───────────────────────────
-// badge: number > 0 affiche un compteur sur le lien
-const MENU_GROUPS = [
-  {
-    label: 'Général',
-    items: [
-      { icon: Home, label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
-    ],
-  },
-  {
-    label: 'Gestion',
-    items: [
-      { icon: Package, label: 'Conteneurs', id: 'containers', path: '/containers' },
-      { icon: Map,     label: 'Zones',      id: 'zones',       path: '/zones' },
-    ],
-  },
-  {
-    label: 'Logistique',
-    items: [
-      { icon: Route, label: 'Tournées', id: 'tournees', path: '/tournees' },
-      {
-        icon: AlertCircle,
-        label: 'Signalements',
-        id: 'signals',
-        path: '/signalements',
-        badge: 5,
-        submenu: [
-          { label: 'Tous les signalements', path: '/signalements' },
-          { label: 'Signalements Agents',   path: '/signalements/agents' },
-          { label: 'Signalements Citoyens', path: '/signalements/citoyens' },
-        ],
-      },
-      { icon: Cpu, label: 'Capteurs', id: 'capteurs', path: '/capteurs', badge: 2 },
-    ],
-  },
-  {
-    label: 'Administration',
-    items: [
-      { icon: Users, label: 'Utilisateurs', id: 'users', path: '/users' },
-    ],
-  },
-];
 
 export default function Sidebar() {
   const [isOpen, setIsOpen]           = useState(true);
   const [expandedMenu, setExpandedMenu] = useState(null);
+  const [badges, setBadges]           = useState({ signals: 0, capteurs: 0 });
   const navigate  = useNavigate();
   const location  = useLocation();
   const { logout } = useAuthStore();
+
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        const [signalements, capteurs] = await Promise.all([
+          getSignalementsOuverts().catch(() => []),
+          getCapteurs().catch(() => []),
+        ]);
+        setBadges({
+          signals: signalements.length,
+          capteurs: capteurs.filter(c => c.batterie != null && c.batterie < 20).length,
+        });
+      } catch {}
+    };
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const MENU_GROUPS = [
+    {
+      label: 'Général',
+      items: [
+        { icon: Home, label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
+      ],
+    },
+    {
+      label: 'Gestion',
+      items: [
+        { icon: Package, label: 'Conteneurs', id: 'containers', path: '/containers' },
+        { icon: Map,     label: 'Zones',      id: 'zones',       path: '/zones' },
+      ],
+    },
+    {
+      label: 'Logistique',
+      items: [
+        { icon: Route, label: 'Tournées', id: 'tournees', path: '/tournees' },
+        {
+          icon: AlertCircle,
+          label: 'Signalements',
+          id: 'signals',
+          path: '/signalements',
+          badge: badges.signals,
+          submenu: [
+            { label: 'Tous les signalements', path: '/signalements' },
+            { label: 'Signalements Agents',   path: '/signalements/agents' },
+            { label: 'Signalements Citoyens', path: '/signalements/citoyens' },
+          ],
+        },
+        { icon: Cpu, label: 'Capteurs', id: 'capteurs', path: '/capteurs', badge: badges.capteurs },
+      ],
+    },
+    {
+      label: 'Administration',
+      items: [
+        { icon: Users, label: 'Utilisateurs', id: 'users', path: '/users' },
+      ],
+    },
+  ];
 
   const handleLogout = () => { logout(); navigate('/login'); };
 

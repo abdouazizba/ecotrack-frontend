@@ -26,14 +26,14 @@ const STATUS_FILTERS = [
 ];
 
 function FillBarMini({ value }) {
-  const pct = Math.min(Math.max(value || 0, 0), 100);
+  const pct = Math.min(Math.max(parseFloat(value) || 0, 0), 100);
   const color = pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#10b981';
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
       <div style={{ flex: 1, height: 5, background: '#e2e8f0', borderRadius: 99, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 99, transition: 'width 0.4s' }} />
       </div>
-      <span style={{ fontSize: 10, color, fontWeight: 700, minWidth: 28 }}>{pct}%</span>
+      <span style={{ fontSize: 10, color, fontWeight: 700, minWidth: 28 }}>{pct.toFixed(1)}%</span>
     </div>
   );
 }
