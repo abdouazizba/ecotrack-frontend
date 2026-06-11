@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  BarChart3, Package, Truck, AlertCircle, Menu, X,
+  Package, AlertCircle, Menu, X,
   LogOut, Home, ChevronDown, Route, Users, Map, Cpu,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -55,7 +55,7 @@ export default function Sidebar() {
   const [expandedMenu, setExpandedMenu] = useState(null);
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { user, logout } = useAuthStore();
+  const { logout } = useAuthStore();
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
