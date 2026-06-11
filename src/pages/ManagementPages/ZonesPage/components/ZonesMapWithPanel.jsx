@@ -42,8 +42,19 @@ if (L.drawLocal) {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ZONE_COLORS = ['#2dd4bf', '#0d9488', '#10b981', '#059669', '#0891b2', '#7c3aed'];
-const WEATHER_API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const EMPTY_FORM = { nom: '', code_zone: '', population_estimee: '', latitude: '', longitude: '', is_active: true };
+
+const WMO_DESC = (code) => {
+  if (code === 0) return 'Ciel dégagé';
+  if (code <= 3) return 'Partiellement nuageux';
+  if (code <= 48) return 'Brouillard';
+  if (code <= 55) return 'Bruine';
+  if (code <= 65) return 'Pluie';
+  if (code <= 75) return 'Neige';
+  if (code <= 82) return 'Averses';
+  if (code <= 99) return 'Orage';
+  return '—';
+};
 
 // ── Icon helpers ──────────────────────────────────────────────────────────────
 const createZoneIcon = (color, label = '') =>
@@ -155,12 +166,18 @@ export default function ZonesMapWithPanel() {
   }, []);
 
   const loadWeather = useCallback(async (lat, lon) => {
-    if (!WEATHER_API_KEY) return;
     try {
       const res = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=fr`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m`
       );
-      if (res.ok) setWeather(await res.json());
+      if (!res.ok) return;
+      const data = await res.json();
+      setWeather({
+        temp: Math.round(data.current.temperature_2m),
+        description: WMO_DESC(data.current.weather_code),
+        windSpeed: Math.round(data.current.wind_speed_10m),
+        humidity: data.current.relative_humidity_2m,
+      });
     } catch { /* non-critique */ }
   }, []);
 
@@ -434,10 +451,10 @@ export default function ZonesMapWithPanel() {
               <div className="panel-scroll">
                 {weather && (
                   <div className="detail-weather">
-                    <div className="dw-temp"><Thermometer size={16} /><span>{Math.round(weather.main?.temp ?? 0)}°C</span></div>
-                    <div className="dw-stat"><Cloud size={13} /><span>{weather.weather?.[0]?.description ?? '—'}</span></div>
-                    <div className="dw-stat"><Wind size={13} /><span>{Math.round(weather.wind?.speed ?? 0)} m/s</span></div>
-                    <div className="dw-stat"><Droplets size={13} /><span>{weather.main?.humidity ?? 0}%</span></div>
+                    <div className="dw-temp"><Thermometer size={16} /><span>{weather.temp}°C</span></div>
+                    <div className="dw-stat"><Cloud size={13} /><span>{weather.description}</span></div>
+                    <div className="dw-stat"><Wind size={13} /><span>{weather.windSpeed} m/s</span></div>
+                    <div className="dw-stat"><Droplets size={13} /><span>{weather.humidity}%</span></div>
                   </div>
                 )}
 
