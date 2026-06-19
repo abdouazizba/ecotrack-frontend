@@ -1,0 +1,17 @@
+/* AgentPortal reuses the admin sidebar CSS classes entirely. */
+
+/* Override sidebar width variable for agent portal (sidebar = 252px open, 68px collapsed) */
+.agent-portal {
+  --sidebar-width: 272px;
+}
+
+/* Allow the agent main content area to scroll */
+.agent-portal .dashboard-main {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+.agent-portal .dashboard-main::-webkit-scrollbar { width: 5px; }
+.agent-portal .dashboard-main::-webkit-scrollbar-track { background: transparent; }
+.agent-portal .dashboard-main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
