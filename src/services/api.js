@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import useAuthStore from '../store/authStore';
 import {
   transformZonesArrayToFrontend,
   transformConteneurArrayToFrontend,
@@ -34,9 +35,70 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(token)));
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const original = error.config;
+    const isAuthEndpoint =
+      original?.url?.includes('/auth/refresh') ||
+      original?.url?.includes('/auth/login');
+
+    if (error.response?.status === 401 && !original?._retry && !isAuthEndpoint) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          original.headers.Authorization = `Bearer ${token}`;
+          return api(original);
+        });
+      }
+
+      original._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = Cookies.get('refreshToken');
+      if (!refreshToken) {
+        isRefreshing = false;
+        processQueue(error, null);
+        useAuthStore.getState().logout();
+        window.location.href = '/';
+        return Promise.reject(error);
+      }
+
+      return new Promise((resolve, reject) => {
+        api
+          .post('/auth/refresh-token', { refreshToken })
+          .then((res) => {
+            const newToken =
+              res.data.accessToken ||
+              res.data.tokens?.accessToken ||
+              res.data.access_token;
+            useAuthStore.getState().updateAccessToken(newToken);
+            api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+            original.headers.Authorization = `Bearer ${newToken}`;
+            processQueue(null, newToken);
+            resolve(api(original));
+          })
+          .catch((err) => {
+            processQueue(err, null);
+            useAuthStore.getState().logout();
+            window.location.href = '/';
+            reject(err);
+          })
+          .finally(() => {
+            isRefreshing = false;
+          });
+      });
+    }
+
     if (error.response) {
       console.error(`HTTP Error ${error.response.status}:`, error.response.statusText);
     } else if (error.request) {
@@ -109,6 +171,23 @@ export const logoutUser = async () => {
   await api.post('/auth/logout');
 };
 
+export const registerPublic = async ({ email, password, firstName, lastName, phone }) => {
+  const response = await api.post('/auth/register', {
+    email,
+    password,
+    prenom: firstName,
+    nom: lastName,
+    telephone: phone || undefined,
+    role: 'citoyen',
+  });
+  const data = response.data;
+  return {
+    user: data.user || data.data?.user || data.data,
+    accessToken: data.accessToken || data.tokens?.accessToken || data.access_token || data.token,
+    refreshToken: data.refreshToken || data.tokens?.refreshToken || data.refresh_token,
+  };
+};
+
 export const verifyToken = async () => {
   const response = await api.post('/auth/verify');
   return response.data;
@@ -130,7 +209,7 @@ export const getDashboardStats = async () => {
 
 export const getContainers = async (filters = {}) => {
   try {
-    const response = await api.get('/conteneurs', { params: filters });
+    const response = await api.get('/conteneurs', { params: { limit: 5000, ...filters } });
     return transformConteneurArrayToFrontend(extractArray(response.data, 'conteneurs'));
   } catch (err) {
     console.error('Error fetching containers:', err.message);
@@ -266,13 +345,18 @@ export const getSignalementAudit = async (id) => {
 };
 
 export const patchSignalement = async (id, partialData) => {
-  const { status, motif_rejet, agent_id, photo_resolution_url } = partialData;
+  const { status, motif_rejet, agent_id, photoFile, notes } = partialData;
   let response;
 
   if (status === 'in_progress') {
     response = await api.post(`/signalements/${id}/in-progress`);
   } else if (status === 'closed') {
-    response = await api.post(`/signalements/${id}/close`, photo_resolution_url ? { photo_resolution_url } : {});
+    const formData = new FormData();
+    formData.append('photo', photoFile);
+    if (notes) formData.append('notes', notes);
+    response = await api.post(`/signalements/${id}/close`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   } else if (status === 'rejected') {
     response = await api.post(`/signalements/${id}/reject`, motif_rejet ? { motif_rejet } : {});
   } else if (agent_id !== undefined) {
@@ -345,12 +429,12 @@ export const changeUserRole = async (id, role) => {
 };
 
 export const getAgents = async () => {
-  const response = await api.get('/users', { params: { role: 'agent' } });
+  const response = await api.get('/users', { params: { role: 'agent', limit: 500 } });
   return transformUsersArrayToFrontend(extractArray(response.data, 'users'));
 };
 
 export const getAdmins = async () => {
-  const response = await api.get('/users', { params: { role: 'admin' } });
+  const response = await api.get('/users', { params: { role: 'admin', limit: 500 } });
   return transformUsersArrayToFrontend(extractArray(response.data, 'users'));
 };
 
@@ -407,21 +491,32 @@ export const deleteTournee = async (id) => {
   }
 };
 
+export const getSignalementsByTournee = async (tourneeId) => {
+  try {
+    const response = await api.get(`/tournees/${tourneeId}/signalements`);
+    return transformSignalementsArrayToFrontend(extractArray(response.data, 'signalements'));
+  } catch (err) {
+    console.error('Error fetching tournee signalements:', err.message);
+    return [];
+  }
+};
+
 export const addSignalementToTournee = async (tourneeId, signalementIds) => {
   try {
-    const response = await api.post(`/tournees/${tourneeId}/signalements`, {
-      signalement_ids: signalementIds,
-    });
-    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
+    await Promise.all(
+      signalementIds.map((sigId) =>
+        api.patch(`/signalements/${sigId}/tournee`, { id_tournee: tourneeId })
+      )
+    );
   } catch (err) {
     console.error('Error adding signalements to tournee:', err.message);
     throw err;
   }
 };
 
-export const removeSignalementFromTournee = async (tourneeId, sigId) => {
+export const removeSignalementFromTournee = async (_tourneeId, sigId) => {
   try {
-    await api.delete(`/tournees/${tourneeId}/signalements/${sigId}`);
+    await api.patch(`/signalements/${sigId}/tournee`, { id_tournee: null });
   } catch (err) {
     console.error('Error removing signalement from tournee:', err.message);
     throw err;
@@ -447,7 +542,7 @@ export const updateTourneeStatus = async (id, status) => {
 
 export const getCapteurs = async (filters = {}) => {
   try {
-    const response = await api.get('/capteurs', { params: filters });
+    const response = await api.get('/capteurs', { params: { limit: 10000, ...filters } });
     return transformCapteursArrayToFrontend(extractArray(response.data, 'capteurs'));
   } catch (err) {
     console.error('Error fetching capteurs:', err.message);
@@ -679,6 +774,30 @@ export const getUserProfile = async (id) => {
 // ============================================
 // TOURNÉES - Extras
 // ============================================
+
+// ============================================
+// AGENT - Zone & Containers
+// ============================================
+
+export const getAgentZone = async (agentId) => {
+  try {
+    const response = await api.get(`/agents/${agentId}/zone`);
+    return response.data?.zone || null;
+  } catch (err) {
+    console.error('Error fetching agent zone:', err.message);
+    return null;
+  }
+};
+
+export const getAgentZoneContainers = async (agentId, filters = {}) => {
+  try {
+    const response = await api.get(`/agents/${agentId}/zone/containers`, { params: filters });
+    return transformConteneurArrayToFrontend(extractArray(response.data, 'conteneurs'));
+  } catch (err) {
+    console.error('Error fetching agent zone containers:', err.message);
+    return [];
+  }
+};
 
 export const getTourneesByAgent = async (agentId) => {
   try {

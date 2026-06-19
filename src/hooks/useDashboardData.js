@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getContainers, getSignalements, getZones, getAgents, getCapteurs, getDashboardStats } from '../services/api';
+import { getContainers, getSignalements, getZones, getAgents, getCapteurs, getDashboardStats, getContainersNeedingService, getTournees, getContainerStatsDashboard, getTourStatsDashboard } from '../services/api';
 import { enrichContainersWithSensors } from '../services/transformers';
 
 export default function useDashboardData() {
@@ -8,22 +8,30 @@ export default function useDashboardData() {
     signalements: [],
     zones: [],
     agents: [],
+    tournees: [],
+    criticalContainers: [],
     dashboardStats: {},
     loading: true,
     error: null,
   });
 
   useEffect(() => {
-    Promise.allSettled([getContainers(), getSignalements(), getZones(), getAgents(), getCapteurs(), getDashboardStats()])
-      .then(([cRes, sRes, zRes, aRes, capRes, statsRes]) => {
+    Promise.allSettled([getContainers(), getSignalements(), getZones(), getAgents(), getCapteurs(), getDashboardStats(), getContainersNeedingService(), getTournees(), getContainerStatsDashboard(), getTourStatsDashboard()])
+      .then(([cRes, sRes, zRes, aRes, capRes, statsRes, critRes, tourRes, cStatsRes, tStatsRes]) => {
         const rawContainers = cRes.status === 'fulfilled' ? cRes.value : [];
         const capteurs      = capRes.status === 'fulfilled' ? capRes.value : [];
         setState({
-          containers:     enrichContainersWithSensors(rawContainers, capteurs),
-          signalements:   sRes.status === 'fulfilled' ? sRes.value : [],
-          zones:          zRes.status === 'fulfilled' ? zRes.value : [],
-          agents:         aRes.status === 'fulfilled' ? aRes.value : [],
-          dashboardStats: statsRes.status === 'fulfilled' ? statsRes.value : {},
+          containers:         enrichContainersWithSensors(rawContainers, capteurs),
+          signalements:       sRes.status === 'fulfilled' ? sRes.value : [],
+          zones:              zRes.status === 'fulfilled' ? zRes.value : [],
+          agents:             aRes.status === 'fulfilled' ? aRes.value : [],
+          tournees:           tourRes.status === 'fulfilled' ? tourRes.value : [],
+          criticalContainers: critRes.status === 'fulfilled' ? (critRes.value || []) : [],
+          dashboardStats:     {
+            ...(statsRes.status === 'fulfilled' ? statsRes.value : {}),
+            containerStats: cStatsRes.status === 'fulfilled' ? cStatsRes.value : null,
+            tourStats:      tStatsRes.status === 'fulfilled' ? tStatsRes.value : null,
+          },
           loading: false,
           error: null,
         });

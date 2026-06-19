@@ -147,6 +147,7 @@ export const transformMesureToFrontend = (backendData) => {
     batterie: backendData.batterie,
     signal_force: backendData.signal_force,
     id_conteneur: backendData.id_conteneur,
+    id_capteur: backendData.id_capteur || null,
   };
 };
 
@@ -241,6 +242,9 @@ export const transformSignalementToFrontend = (backendData) => {
     photo_url:              backendData.photo_url || backendData.photo || null,
     photo_resolution_url:   backendData.photo_resolution_url || null,
     motif_rejet:            backendData.motif_rejet || null,
+    date_resolution:        backendData.date_resolution || null,
+    notes_resolution:       backendData.notes_resolution || null,
+    id_tournee:    backendData.id_tournee || null,
     created_at:    backendData.date_creation || backendData.date_signalement
                    || backendData.createdAt  || backendData.created_at || null,
   };
@@ -273,20 +277,33 @@ const TOURNEE_STATUS_TO_BACKEND = {
 
 export const transformTourneeToFrontend = (raw) => {
   if (!raw) return null;
-  const agent = raw.agent || {};
-  const zone  = raw.zone  || {};
+  const agent      = raw.agent || {};
+  const zone       = raw.zone  || {};
+  const agentsArr  = Array.isArray(raw.agents) ? raw.agents : [];
+  const conducteur = agentsArr.find((a) => a.role === 'CONDUCTEUR') || agentsArr[0] || {};
+
   return {
     id:           raw.id,
     code:         raw.code || null,
-    titre:        raw.titre || raw.nom || raw.name || `Tournée ${raw.id}`,
+    titre:        raw.titre || raw.nom || raw.code || `Tournée ${raw.id?.slice(0, 8)}`,
     zone_id:      raw.zone_id  || raw.id_zone  || raw.zoneId  || zone.id  || null,
     zone_nom:     raw.zone_nom || zone.nom || zone.name || null,
-    agent_id:     raw.agent_id || raw.id_agent || raw.agentId || agent.id || null,
+    agent_id:     raw.agent_id || raw.id_agent || raw.agentId
+                  || agent.id || conducteur.id_agent || null,
     agent_nom:    raw.agent_nom
-                  || (agent.prenom || agent.firstName ? `${agent.prenom || agent.firstName} ${agent.nom || agent.lastName}` : null)
+                  || (agent.prenom || agent.firstName
+                      ? `${agent.prenom || agent.firstName} ${agent.nom || agent.lastName}`
+                      : null)
                   || null,
+    // liste complète des agents avec leur rôle (id_agent + role)
+    agents:       agentsArr.map((a) => ({ id: a.id_agent || a.id, role: a.role || 'COLLECTEUR' })),
     date_prevue:  raw.date_prevue || raw.date || raw.datePrevue || null,
     status:       TOURNEE_STATUS_TO_FRONTEND[raw.statut || raw.status] || 'pending',
+    heure_debut:          raw.heure_debut || null,
+    heure_fin:            raw.heure_fin   || null,
+    distance_km:          raw.distance_km ?? null,
+    conteneurs_collectes: raw.conteneurs_collectes ?? 0,
+    notes:                raw.notes || null,
     signalements: Array.isArray(raw.signalements)
                     ? raw.signalements.map(transformSignalementToFrontend)
                     : [],
@@ -294,17 +311,27 @@ export const transformTourneeToFrontend = (raw) => {
   };
 };
 
-export const transformTourneeToBackend = (data) => ({
-  code:      data.code || `TOUR-${Date.now()}`,
-  date:      data.date_prevue || data.date,
-  titre:     data.titre,
-  id_zone:   data.zone_id,
-  id_agent:  data.agent_id,
-  statut:    TOURNEE_STATUS_TO_BACKEND[data.status] || 'PLANIFIÉE',
-});
 
 export const transformTourneesArrayToFrontend = (arr) =>
   (Array.isArray(arr) ? arr : []).map(transformTourneeToFrontend);
+
+export const transformTourneeToBackend = (data) => {
+  if (!data) return {};
+  const out = {};
+  if (data.zone_id   !== undefined) out.id_zone    = data.zone_id;
+  if (data.date_prevue !== undefined) out.date     = data.date_prevue;
+  if (data.status    !== undefined) out.statut      = TOURNEE_STATUS_TO_BACKEND[data.status] || data.status;
+  if (data.heure_debut !== undefined) out.heure_debut = data.heure_debut;
+  if (data.heure_fin   !== undefined) out.heure_fin   = data.heure_fin;
+  if (data.distance_km !== undefined) out.distance_km = data.distance_km;
+  if (data.conteneurs_collectes !== undefined) out.conteneurs_collectes = data.conteneurs_collectes;
+  if (data.notes     !== undefined) out.notes       = data.notes;
+  if (data.agents    !== undefined) out.agents      = data.agents;
+  if (data.agent_id  !== undefined && !data.agents) {
+    out.agents = [{ id_agent: data.agent_id, role: 'CONDUCTEUR' }];
+  }
+  return out;
+};
 
 // ============================================
 // CAPTEURS TRANSFORMERS

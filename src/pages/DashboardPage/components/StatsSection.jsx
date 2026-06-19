@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import EchartsStatCard from '../../../components/charts/EchartsStatCard';
 
-export default function StatsSection({ containers, signalements, zones, agents, dashboardStats = {}, loading }) {
+export default function StatsSection({ containers, signalements, zones, agents, tournees = [], criticalContainers = [], dashboardStats = {}, loading }) {
   const stats = useMemo(() => {
     // ── conteneurs — use DB totals from stats endpoint when available ──
     const totalContainers = dashboardStats.containers ?? containers.length;
@@ -35,13 +35,22 @@ export default function StatsSection({ containers, signalements, zones, agents, 
       (a) => a.status === 'active' || a.is_active === true || a.is_active === 1
     ).length;
 
+    // ── tournées ──
+    const tourneesEnCours   = tournees.filter((t) => t.status === 'in_progress').length;
+    const tourneesPlanifiees = tournees.filter((t) => t.status === 'pending').length;
+    const tourneesTerminees = tournees.filter((t) => t.status === 'done').length;
+
+    // ── conteneurs critiques (needs-service) ──
+    const needsServiceCount = criticalContainers.length;
+
     return {
-      totalContainers, avgFillRate, criticalContainers, maintenanceContainers,
+      totalContainers, avgFillRate, criticalContainers: criticalContainers.length || dashboardStats.criticalContainers || containers.filter((c) => (c.fillLevel || 0) > 80).length, maintenanceContainers,
       totalZones, activeZones,
       pendingSig, inProgressSig, closedSig, tauxResolution,
       activeAgents,
+      tourneesEnCours, tourneesPlanifiees, tourneesTerminees, needsServiceCount,
     };
-  }, [containers, signalements, zones, agents, dashboardStats]);
+  }, [containers, signalements, zones, agents, tournees, criticalContainers, dashboardStats]);
 
   if (loading) {
     return (
@@ -130,6 +139,36 @@ export default function StatsSection({ containers, signalements, zones, agents, 
         type="pie"
         color="#10b981"
         subtitle="Signalements fermés"
+      />
+
+      {/* ── ligne 4 : tournées ── */}
+      <EchartsStatCard
+        title="Tournées En Cours"
+        value={(stats.tourneesEnCours ?? 0).toString()}
+        type="bar"
+        color="#3b82f6"
+        subtitle="Prises en charge"
+      />
+      <EchartsStatCard
+        title="Tournées Planifiées"
+        value={(stats.tourneesPlanifiees ?? 0).toString()}
+        type="line"
+        color="#f59e0b"
+        subtitle="À prendre en charge"
+      />
+      <EchartsStatCard
+        title="Tournées Terminées"
+        value={(stats.tourneesTerminees ?? 0).toString()}
+        type="pie"
+        color="#10b981"
+        subtitle="Complétées"
+      />
+      <EchartsStatCard
+        title="Conteneurs à Collecter"
+        value={(stats.needsServiceCount ?? 0).toString()}
+        type="bar"
+        color={stats.needsServiceCount > 10 ? '#ef4444' : '#f59e0b'}
+        subtitle="Remplissage critique"
       />
     </div>
   );
