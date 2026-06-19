@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Package, AlertCircle, Menu, X,
+  Package, AlertCircle, Menu, X, Truck, Activity,
   LogOut, Home, ChevronDown, Route, Users, Map, Cpu,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 import { getSignalementsOuverts, getCapteurs } from '../../services/api';
+import LogoutModal from '../common/LogoutModal';
 import './Sidebar.css';
 
 export default function Sidebar() {
-  const [isOpen, setIsOpen]           = useState(true);
+  const [isOpen, setIsOpen]             = useState(true);
   const [expandedMenu, setExpandedMenu] = useState(null);
-  const [badges, setBadges]           = useState({ signals: 0, capteurs: 0 });
+  const [badges, setBadges]             = useState({ signals: 0, capteurs: 0 });
+  const [showLogout, setShowLogout]     = useState(false);
   const navigate  = useNavigate();
   const location  = useLocation();
   const { logout } = useAuthStore();
@@ -58,13 +60,10 @@ export default function Sidebar() {
           id: 'signals',
           path: '/signalements',
           badge: badges.signals,
-          submenu: [
-            { label: 'Tous les signalements', path: '/signalements' },
-            { label: 'Signalements Agents',   path: '/signalements/agents' },
-            { label: 'Signalements Citoyens', path: '/signalements/citoyens' },
-          ],
         },
         { icon: Cpu, label: 'Capteurs', id: 'capteurs', path: '/capteurs', badge: badges.capteurs },
+        { icon: Truck, label: 'Collecteurs', id: 'collecteurs', path: '/collecteurs' },
+        { icon: Activity, label: 'Mesures IoT', id: 'mesures', path: '/mesures' },
       ],
     },
     {
@@ -76,6 +75,7 @@ export default function Sidebar() {
   ];
 
   const handleLogout = () => { logout(); navigate('/login'); };
+  const confirmLogout = () => { setShowLogout(false); handleLogout(); };
 
   const toggleSubmenu = (id) =>
     setExpandedMenu((prev) => (prev === id ? null : id));
@@ -154,11 +154,16 @@ export default function Sidebar() {
       </nav>
 
       {/* ── Logout ── */}
-      <button onClick={handleLogout} className="sidebar-logout" title="Déconnexion">
+      <button onClick={() => setShowLogout(true)} className="sidebar-logout" title="Déconnexion">
         <LogOut size={18} />
         {isOpen && <span>Déconnexion</span>}
       </button>
 
+      <LogoutModal
+        isOpen={showLogout}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogout(false)}
+      />
     </div>
   );
 }

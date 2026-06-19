@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { LogOut, Bell, Search, User, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import LogoutModal from '../common/LogoutModal';
 import './Navbar.css';
 
 const WMO_ICON = (code) => {
@@ -51,6 +52,7 @@ export default function Navbar({ onLogout }) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showLogout, setShowLogout]     = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -65,6 +67,11 @@ export default function Navbar({ onLogout }) {
 
   const handleLogout = () => {
     setDropdownOpen(false);
+    setShowLogout(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogout(false);
     logout();
     navigate('/login');
     onLogout?.();
@@ -156,6 +163,11 @@ export default function Navbar({ onLogout }) {
         </div>
       </div>
 
+      <LogoutModal
+        isOpen={showLogout}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogout(false)}
+      />
     </nav>
   );
 }
