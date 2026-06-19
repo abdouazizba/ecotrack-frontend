@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { getSignalements, patchSignalement, deleteSignalement, getAgents } from '../../../services/api';
+import {
+  getSignalements, patchSignalement, deleteSignalement,
+  getAgents, getContainers, getZones,
+} from '../../../services/api';
 import SignalementsList from './components/SignalementsList';
 import SignalementDetail from './components/SignalementDetail';
 import './SignalementsPage.css';
@@ -7,17 +10,25 @@ import './SignalementsPage.css';
 export default function SignalementsPage() {
   const [signalements, setSignalements]   = useState([]);
   const [agents, setAgents]               = useState([]);
+  const [containers, setContainers]       = useState([]);
+  const [zones, setZones]                 = useState([]);
   const [selectedId, setSelectedId]       = useState(null);
   const [filter, setFilter]               = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [search, setSearch]               = useState('');
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [data, agentsData] = await Promise.all([getSignalements(), getAgents()]);
+      const [data, agentsData, containersData, zonesData] = await Promise.all([
+        getSignalements(), getAgents(), getContainers(), getZones(),
+      ]);
       setSignalements(data);
       setAgents(agentsData || []);
+      setContainers(containersData || []);
+      setZones(zonesData || []);
       setError(null);
     } catch {
       setError('Erreur lors du chargement des signalements');
@@ -28,19 +39,30 @@ export default function SignalementsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = useMemo(
-    () => filter === 'all' ? signalements : signalements.filter((s) => s.status === filter),
-    [signalements, filter]
-  );
+  const filtered = useMemo(() => {
+    let list = signalements;
+    if (filter !== 'all') list = list.filter((s) => s.status === filter);
+    if (priorityFilter !== 'all') list = list.filter((s) => s.priority === priorityFilter);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((s) =>
+        (s.description || '').toLowerCase().includes(q) ||
+        (s.type || '').toLowerCase().includes(q) ||
+        (s.id || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [signalements, filter, priorityFilter, search]);
 
   const selectedSignalement = signalements.find((s) => s.id === selectedId) || null;
 
-  const handleStatusChange = useCallback(async (id, newStatus, motifRejet, photoResolutionUrl) => {
+  const handleStatusChange = useCallback(async (id, newStatus, motifRejet, photoFile, notes) => {
     try {
       await patchSignalement(id, {
         status: newStatus,
         motif_rejet: motifRejet,
-        photo_resolution_url: photoResolutionUrl,
+        photoFile,
+        notes,
       });
       await load();
     } catch {
@@ -79,11 +101,18 @@ export default function SignalementsPage() {
       <div className="sig-split">
         <SignalementsList
           signalements={filtered}
+          allSignalements={signalements}
           selectedId={selectedId}
           filter={filter}
+          priorityFilter={priorityFilter}
+          search={search}
           loading={loading}
+          zones={zones}
+          containers={containers}
           onSelect={setSelectedId}
           onFilterChange={setFilter}
+          onPriorityChange={setPriorityFilter}
+          onSearchChange={setSearch}
         />
 
         <div className="sig-right">

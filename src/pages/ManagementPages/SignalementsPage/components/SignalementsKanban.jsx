@@ -240,16 +240,21 @@ function SignalementCard({ signalement, status, onStatusChange, onDelete, onView
 
       <div className="card-footer">
         <div className="status-buttons">
-          {['pending', 'in_progress', 'closed'].map(statusId => (
+          {signalement.status === 'pending' && (
             <button
-              key={statusId}
-              className={`status-btn ${signalement.status === statusId ? 'active' : ''}`}
-              onClick={() => onStatusChange(signalement.id, statusId)}
-              title={`Marquer comme ${STATUSES.find(s => s.id === statusId)?.label}`}
+              className="status-btn"
+              onClick={() => onStatusChange(signalement.id, 'in_progress')}
+              title="Prendre en charge"
+              style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}
             >
-              {STATUSES.find(s => s.id === statusId)?.label.substring(0, 3)}
+              Prendre en charge
             </button>
-          ))}
+          )}
+          {signalement.status === 'in_progress' && (
+            <span style={{ color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic' }}>
+              Clôture via le détail (photo obligatoire)
+            </span>
+          )}
         </div>
       </div>
     </div>

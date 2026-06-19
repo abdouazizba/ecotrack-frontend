@@ -41,11 +41,13 @@ function getSlaWarning(sig) {
 }
 
 export default function SignalementDetail({ signalement, agents = [], onStatusChange, onDelete, onAgentAssign }) {
-  const [rejectMode, setRejectMode]         = useState(false);
-  const [motifRejet, setMotifRejet]         = useState('');
-  const [closeMode, setCloseMode]           = useState(false);
-  const [photoResolution, setPhotoResolution] = useState('');
-  const [showAudit, setShowAudit]           = useState(false);
+  const [rejectMode, setRejectMode]   = useState(false);
+  const [motifRejet, setMotifRejet]   = useState('');
+  const [closeMode, setCloseMode]     = useState(false);
+  const [photoFile, setPhotoFile]     = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [closeNotes, setCloseNotes]   = useState('');
+  const [showAudit, setShowAudit]     = useState(false);
 
   if (!signalement) {
     return (
@@ -74,17 +76,30 @@ export default function SignalementDetail({ signalement, agents = [], onStatusCh
     setMotifRejet('');
   };
 
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
   const handleCloseConfirm = () => {
-    onStatusChange(signalement.id, 'closed', undefined, photoResolution.trim() || undefined);
+    onStatusChange(signalement.id, 'closed', undefined, photoFile, closeNotes.trim() || undefined);
     setCloseMode(false);
-    setPhotoResolution('');
+    setPhotoFile(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    setCloseNotes('');
   };
 
   const resetForms = () => {
     setRejectMode(false);
     setCloseMode(false);
     setMotifRejet('');
-    setPhotoResolution('');
+    setPhotoFile(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    setCloseNotes('');
   };
 
   return (
@@ -225,23 +240,47 @@ export default function SignalementDetail({ signalement, agents = [], onStatusCh
           </div>
         ) : closeMode ? (
           <div className="sig-close-form">
-            <label>Photo de résolution (optionnel)</label>
-            <div className="sig-close-photo-input">
-              <Image size={14} />
+            <label>
+              <Image size={13} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+              Photo de preuve <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+
+            <label className="sig-close-file-label">
               <input
-                type="url"
-                className="sig-close-url-input"
-                placeholder="https://… ou laisser vide"
-                value={photoResolution}
-                onChange={(e) => setPhotoResolution(e.target.value)}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: 'none' }}
+                onChange={handlePhotoSelect}
                 autoFocus
               />
-            </div>
+              {photoPreview ? (
+                <img src={photoPreview} alt="Aperçu" className="sig-close-preview" />
+              ) : (
+                <div className="sig-close-file-placeholder">
+                  <Image size={20} />
+                  <span>Importer depuis l'appareil</span>
+                </div>
+              )}
+            </label>
+
+            <label style={{ marginTop: 12 }}>Notes (optionnel)</label>
+            <textarea
+              className="sig-reject-textarea"
+              rows={2}
+              placeholder="Notes de résolution…"
+              value={closeNotes}
+              onChange={(e) => setCloseNotes(e.target.value)}
+            />
+
             <div className="sig-reject-actions">
               <button className="sig-action-btn sig-action-cancel" onClick={resetForms}>
                 Annuler
               </button>
-              <button className="sig-action-btn sig-action-close" onClick={handleCloseConfirm}>
+              <button
+                className="sig-action-btn sig-action-close"
+                onClick={handleCloseConfirm}
+                disabled={!photoFile}
+              >
                 <CheckCircle size={14} /> Confirmer la clôture
               </button>
             </div>
