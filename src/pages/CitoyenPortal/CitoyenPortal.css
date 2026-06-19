@@ -1,21 +1,21 @@
 /* ============================================================
    ECOTRACK — PORTAIL CITOYEN
-   Glassmorphism émeraude moyen, iOS-inspired
+   Dark mode : blanc · noir · vert · gris
    ============================================================ */
 
 /* ── Variables ─────────────────────────────────────────────── */
 :root {
-  --cp-bg-from:     #065f46;
-  --cp-bg-mid:      #047857;
-  --cp-bg-end:      #0891b2;
-  --cp-glass:       rgba(255, 255, 255, 0.11);
-  --cp-glass-border:rgba(255, 255, 255, 0.22);
-  --cp-glass-hover: rgba(255, 255, 255, 0.18);
-  --cp-accent:      #6ee7b7;
+  --cp-bg-from:     #0a0f1a;
+  --cp-bg-mid:      #111827;
+  --cp-bg-end:      #0f172a;
+  --cp-glass:       rgba(255, 255, 255, 0.06);
+  --cp-glass-border:rgba(255, 255, 255, 0.10);
+  --cp-glass-hover: rgba(255, 255, 255, 0.12);
+  --cp-accent:      #10b981;
   --cp-accent-2:    #34d399;
-  --cp-text:        #ffffff;
+  --cp-text:        #f1f5f9;
   --cp-text-dim:    rgba(255, 255, 255, 0.65);
-  --cp-text-muted:  rgba(255, 255, 255, 0.38);
+  --cp-text-muted:  rgba(255, 255, 255, 0.35);
   --cp-header-h:    64px;
   --cp-nav-h:       70px;
   --cp-sidebar-w:   196px;
@@ -24,7 +24,7 @@
   --cp-blur:        blur(18px) saturate(170%);
 }
 
-/* ── Root — couvre tout le viewport, override body bg ───────── */
+/* ── Root ──────────────────────────────────────────────────── */
 .cp-root {
   position: fixed;
   inset: 0;
@@ -52,14 +52,14 @@
 .cp-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.30;
+  filter: blur(110px);
+  opacity: 0.12;
   animation: cp-orb-drift 18s ease-in-out infinite;
 }
 
 .cp-orb-1 { width: 560px; height: 560px; background: #10b981; top: -180px; right: -140px; animation-duration: 20s; }
-.cp-orb-2 { width: 420px; height: 420px; background: #06b6d4; bottom: -160px; left: -100px; animation-duration: 14s; animation-delay: -6s; }
-.cp-orb-3 { width: 280px; height: 280px; background: #34d399; top: 45%; left: 35%; animation-duration: 11s; animation-delay: -3s; opacity: 0.18; }
+.cp-orb-2 { width: 420px; height: 420px; background: #6b7280; bottom: -160px; left: -100px; animation-duration: 14s; animation-delay: -6s; }
+.cp-orb-3 { width: 280px; height: 280px; background: #34d399; top: 45%; left: 35%; animation-duration: 11s; animation-delay: -3s; opacity: 0.08; }
 
 @keyframes cp-orb-drift {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -73,10 +73,10 @@
   top: 0; left: 0; right: 0;
   height: var(--cp-header-h);
   z-index: 200;
-  background: rgba(6, 78, 59, 0.70);
+  background: rgba(10, 15, 26, 0.80);
   backdrop-filter: var(--cp-blur);
   -webkit-backdrop-filter: var(--cp-blur);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -93,7 +93,7 @@
   width: 34px;
   height: 34px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(52, 211, 153, 0.6));
+  filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.4));
 }
 
 .cp-header-brand {
@@ -122,8 +122,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: rgba(110, 231, 183, 0.20);
-  border: 1.5px solid rgba(110, 231, 183, 0.45);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -137,7 +137,7 @@
 }
 
 .cp-header-avatar:hover {
-  background: rgba(110, 231, 183, 0.30);
+  background: rgba(16, 185, 129, 0.25);
   border-color: var(--cp-accent);
 }
 
@@ -145,8 +145,8 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 8px;
   color: var(--cp-text-dim);
   font-size: 0.78rem;
@@ -156,8 +156,8 @@
 }
 
 .cp-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.18);
-  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
   color: #fca5a5;
 }
 
@@ -176,10 +176,10 @@
     bottom: 0;
     width: var(--cp-sidebar-w);
     z-index: 100;
-    background: rgba(4, 55, 40, 0.55);
+    background: rgba(10, 15, 26, 0.65);
     backdrop-filter: var(--cp-blur);
     -webkit-backdrop-filter: var(--cp-blur);
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     padding: 1.25rem 0.65rem 1.5rem;
     gap: 0.3rem;
   }
@@ -208,9 +208,9 @@
 }
 
 .cp-side-item.active {
-  background: rgba(110, 231, 183, 0.16);
+  background: rgba(16, 185, 129, 0.12);
   color: var(--cp-accent);
-  border: 1px solid rgba(110, 231, 183, 0.28);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 /* ── Layout + content area ─────────────────────────────────── */
@@ -235,7 +235,7 @@
   .cp-content { padding-bottom: calc(var(--cp-nav-h) + 0.5rem); }
 }
 
-/* ── Content centering — shared by all pages ───────────────── */
+/* ── Content centering ────────────────────────────────────── */
 .cp-page-inner {
   max-width: 620px;
   margin: 0 auto;
@@ -257,10 +257,10 @@
     bottom: 0; left: 0; right: 0;
     height: var(--cp-nav-h);
     z-index: 200;
-    background: rgba(4, 55, 40, 0.75);
+    background: rgba(10, 15, 26, 0.85);
     backdrop-filter: var(--cp-blur);
     -webkit-backdrop-filter: var(--cp-blur);
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 }
 
@@ -300,15 +300,15 @@
   border: 1px solid var(--cp-glass-border);
   border-radius: var(--cp-radius);
   box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .cp-card:hover {
-  border-color: rgba(255, 255, 255, 0.30);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* ── Section title ─────────────────────────────────────────── */
@@ -327,7 +327,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #059669, #0891b2);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
   border: none;
   border-radius: var(--cp-radius-sm);
@@ -336,14 +336,14 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 18px rgba(5, 150, 105, 0.45);
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.3);
   text-decoration: none;
 }
 
 .cp-btn-accent:hover:not(:disabled) {
   transform: translateY(-2px);
   filter: brightness(1.08);
-  box-shadow: 0 8px 28px rgba(5, 150, 105, 0.50);
+  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.4);
 }
 
 .cp-btn-accent:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
@@ -366,7 +366,7 @@
 .cp-btn-ghost:hover {
   background: var(--cp-glass-hover);
   color: white;
-  border-color: rgba(110, 231, 183, 0.35);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 /* ── Status badges ─────────────────────────────────────────── */
@@ -380,17 +380,17 @@
   font-weight: 600;
 }
 
-.cp-badge-open     { background: rgba(234, 88, 12, 0.22);  color: #fb923c; border: 1px solid rgba(234,88,12,0.30); }
-.cp-badge-progress { background: rgba(245,158, 11, 0.22);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.30); }
-.cp-badge-closed   { background: rgba(110,231,183, 0.20);  color: #6ee7b7; border: 1px solid rgba(110,231,183,0.30); }
-.cp-badge-rejected { background: rgba(107,114,128, 0.20);  color: #d1d5db; border: 1px solid rgba(107,114,128,0.30); }
+.cp-badge-open     { background: rgba(245,158,11, 0.15);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+.cp-badge-progress { background: rgba(59,130,246, 0.15);  color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+.cp-badge-closed   { background: rgba(16,185,129, 0.15);  color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+.cp-badge-rejected { background: rgba(107,114,128, 0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.25); }
 
 /* ── Spinner ───────────────────────────────────────────────── */
 .cp-spin {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-top-color: var(--cp-accent);
   border-radius: 50%;
   animation: cp-spin-anim 0.75s linear infinite;
@@ -424,5 +424,5 @@
 /* ── Scrollbar ─────────────────────────────────────────────── */
 .cp-root ::-webkit-scrollbar { width: 5px; }
 .cp-root ::-webkit-scrollbar-track { background: transparent; }
-.cp-root ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 3px; }
-.cp-root ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
+.cp-root ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+.cp-root ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }

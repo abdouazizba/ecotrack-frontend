@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Home, AlertCircle, List, User, LogOut } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
+import LogoutModal from '../../components/common/LogoutModal';
 import './CitoyenPortal.css';
 
 const NAV_ITEMS = [
@@ -14,10 +15,11 @@ const NAV_ITEMS = [
 export default function CitoyenPortal() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const [showLogout, setShowLogout] = useState(false);
 
   const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '?';
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const confirmLogout = () => { setShowLogout(false); logout(); navigate('/login'); };
 
   return (
     <div className="cp-root">
@@ -41,7 +43,7 @@ export default function CitoyenPortal() {
           <NavLink to="/citoyen/profil" className="cp-header-avatar" title="Mon profil">
             {initials}
           </NavLink>
-          <button className="cp-logout-btn" onClick={handleLogout}>
+          <button className="cp-logout-btn" onClick={() => setShowLogout(true)}>
             <LogOut size={13} style={{ marginRight: 4 }} />
             Quitter
           </button>
@@ -63,7 +65,7 @@ export default function CitoyenPortal() {
             </NavLink>
           ))}
           <div style={{ flex: 1 }} />
-          <button className="cp-side-item" onClick={handleLogout} style={{ marginTop: 'auto' }}>
+          <button className="cp-side-item" onClick={() => setShowLogout(true)} style={{ marginTop: 'auto' }}>
             <LogOut size={18} />
             <span>Déconnexion</span>
           </button>
@@ -74,6 +76,12 @@ export default function CitoyenPortal() {
           <Outlet />
         </main>
       </div>
+
+      <LogoutModal
+        isOpen={showLogout}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogout(false)}
+      />
 
       {/* Bottom nav (mobile) */}
       <nav className="cp-bottom-nav">

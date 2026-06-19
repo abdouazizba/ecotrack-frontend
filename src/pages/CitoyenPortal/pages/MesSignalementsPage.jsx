@@ -151,6 +151,16 @@ export default function MesSignalementsPage() {
                         <strong>Note de résolution :</strong> {s.notes_resolution}
                       </div>
                     )}
+                    {s.status === 'rejected' && s.motif_rejet && (
+                      <div className="msp-card-notes" style={{ borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)' }}>
+                        <strong style={{ color: '#ef4444' }}>Motif du rejet :</strong> {s.motif_rejet}
+                      </div>
+                    )}
+                    {s.status === 'rejected' && !s.motif_rejet && s.notes_resolution && (
+                      <div className="msp-card-notes" style={{ borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)' }}>
+                        <strong style={{ color: '#ef4444' }}>Motif du rejet :</strong> {s.notes_resolution}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

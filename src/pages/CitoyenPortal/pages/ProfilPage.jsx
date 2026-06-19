@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getSignalementsCitoyen, getUsers } from '../../../services/api';
+import { getSignalementsCitoyen, getUsers, updateUser } from '../../../services/api';
 import useAuthStore from '../../../store/authStore';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -97,16 +97,18 @@ export default function ProfilPage() {
       setSigs(mySigs);
 
       if (usersResult.status === 'fulfilled') {
-        const citizens = usersResult.value;
-        const board = citizens
-          .map((c) => ({ id: c.id, name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.email, pts: 0 }))
-          .sort((a, b) => b.pts - a.pts)
-          .slice(0, 10);
-        // Place current user with real points
-        const myPts = calcPoints(mySigs);
-        const meIdx = board.findIndex((b) => b.id === user.id);
-        if (meIdx >= 0) board[meIdx].pts = myPts;
-        else board.push({ id: user.id, name: `${user.firstName || ''} ${user.lastName || ''}`.trim(), pts: myPts });
+        const citizens = usersResult.value.slice(0, 20);
+        const sigResults = await Promise.allSettled(
+          citizens.map((c) => getSignalementsCitoyen(c.id))
+        );
+        const board = citizens.map((c, i) => {
+          const cSigs = sigResults[i].status === 'fulfilled' ? sigResults[i].value : [];
+          return {
+            id: c.id,
+            name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.email,
+            pts: c.id === user.id ? calcPoints(mySigs) : calcPoints(cSigs),
+          };
+        });
         board.sort((a, b) => b.pts - a.pts);
         setLeaderboard(board.slice(0, 10));
       }
@@ -123,8 +125,13 @@ export default function ProfilPage() {
   const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '?';
   const myRank = leaderboard.findIndex((b) => b.id === user?.id) + 1;
 
-  const handleSaveProfile = () => {
-    updateUserProfile({ firstName, lastName });
+  const handleSaveProfile = async () => {
+    try {
+      await updateUser(user.id, { firstName, lastName });
+      updateUserProfile({ firstName, lastName });
+    } catch {
+      console.error('Erreur sauvegarde profil');
+    }
     setEditing(false);
   };
 
