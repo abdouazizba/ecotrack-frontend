@@ -10,8 +10,8 @@ import UsersPage from './pages/ManagementPages/UsersPage';
 import TourneesPage from './pages/ManagementPages/TourneesPage';
 import SignalementsPage from './pages/ManagementPages/SignalementsPage';
 import CapteurPage from './pages/ManagementPages/CapteurPage';
-import SignalementsAgentsPage from './pages/ManagementPages/SignalementsPage/SignalementsAgentsPage';
-import SignalementsCitoyensPage from './pages/ManagementPages/SignalementsPage/SignalementsCitoyensPage';
+import CollecteursPage from './pages/ManagementPages/CollecteursPage/CollecteursPage';
+import MesuresPage from './pages/ManagementPages/MesuresPage/MesuresPage';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Sidebar from './components/navigation/Sidebar';
@@ -24,13 +24,24 @@ import SignalerPage from './pages/CitoyenPortal/pages/SignalerPage';
 import MesSignalementsPage from './pages/CitoyenPortal/pages/MesSignalementsPage';
 import ProfilPage from './pages/CitoyenPortal/pages/ProfilPage';
 
+// Agent portal
+import AgentPortal, {
+  AgentDashboardPage,
+  MesTourneesPage,
+  ConteneurPage,
+} from './pages/AgentPortal';
+
 import useAuthStore from './store/authStore';
 import './App.css';
+
+const ADMIN_ROLES  = ['admin', 'super_admin'];
+const AGENT_ROLES  = ['agent'];
+const CITOYEN_ROLES = ['citoyen'];
 
 // ── Admin layout (Sidebar + Navbar) ──────────────────────────
 function AdminLayout() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={ADMIN_ROLES}>
       <Navbar />
       <div className="dashboard-container">
         <Sidebar />
@@ -42,10 +53,19 @@ function AdminLayout() {
   );
 }
 
-// ── Citizen layout (standalone CitoyenPortal with nested Outlet) ─
+// ── Agent layout ─────────────────────────────────────────────
+function AgentLayout() {
+  return (
+    <ProtectedRoute allowedRoles={AGENT_ROLES}>
+      <Outlet />
+    </ProtectedRoute>
+  );
+}
+
+// ── Citizen layout ────────────────────────────────────────────
 function CitoyenLayout() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={CITOYEN_ROLES}>
       <Outlet />
     </ProtectedRoute>
   );
@@ -55,9 +75,13 @@ function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
 
-  const defaultRedirect = isAuthenticated
-    ? (user?.role === 'citoyen' ? '/citoyen' : '/dashboard')
-    : '/login';
+  const defaultRedirect = !isAuthenticated
+    ? '/login'
+    : user?.role === 'citoyen'
+    ? '/citoyen'
+    : user?.role === 'agent'
+    ? '/agent'
+    : '/dashboard';
 
   return (
     <Router>
@@ -65,13 +89,22 @@ function App() {
         {/* Public */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* ── Citizen portal — CitoyenPortal is the layout with <Outlet /> ── */}
+        {/* ── Citizen portal ── */}
         <Route element={<CitoyenLayout />}>
           <Route element={<CitoyenPortal />}>
             <Route path="/citoyen" element={<AccueilPage />} />
             <Route path="/citoyen/signaler" element={<SignalerPage />} />
             <Route path="/citoyen/mes-signalements" element={<MesSignalementsPage />} />
             <Route path="/citoyen/profil" element={<ProfilPage />} />
+          </Route>
+        </Route>
+
+        {/* ── Agent portal — AgentPortal is the layout with <Outlet /> ── */}
+        <Route element={<AgentLayout />}>
+          <Route element={<AgentPortal />}>
+            <Route path="/agent" element={<AgentDashboardPage />} />
+            <Route path="/agent/tournees" element={<MesTourneesPage />} />
+            <Route path="/agent/conteneurs" element={<ConteneurPage />} />
           </Route>
         </Route>
 
@@ -84,8 +117,8 @@ function App() {
           <Route path="/tournees" element={<TourneesPage />} />
           <Route path="/signalements" element={<SignalementsPage />} />
           <Route path="/capteurs" element={<CapteurPage />} />
-          <Route path="/signalements/agents" element={<SignalementsAgentsPage />} />
-          <Route path="/signalements/citoyens" element={<SignalementsCitoyensPage />} />
+          <Route path="/collecteurs" element={<CollecteursPage />} />
+          <Route path="/mesures" element={<MesuresPage />} />
           <Route path="/espace-citoyen" element={<Navigate to="/citoyen" replace />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
