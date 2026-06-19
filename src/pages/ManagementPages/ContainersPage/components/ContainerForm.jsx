@@ -3,6 +3,11 @@ import { X, MapPin } from 'lucide-react';
 import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
 import MapPickerModal from '../../../../components/common/MapPickerModal';
 
+const genTag = () => {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+};
+
 const EMPTY = { name: '', type: 'standard', capacity: 100, zoneId: '', status: 'actif', latitude: '', longitude: '' };
 
 export default function ContainerForm({ show, editingContainer, zones, onClose, onSubmit }) {
@@ -21,7 +26,7 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
         longitude: editingContainer.longitude || '',
       });
     } else {
-      setForm(EMPTY);
+      setForm({ ...EMPTY, name: `CONT-${genTag()}` });
     }
   }, [editingContainer, show]);
 
@@ -35,6 +40,20 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
   const set = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
+  const findNearestZone = (lat, lng) => {
+    if (!zones.length) return '';
+    let best = null;
+    let bestDist = Infinity;
+    for (const z of zones) {
+      if (!z.latitude || !z.longitude) continue;
+      const d = (z.latitude - lat) ** 2 + (z.longitude - lng) ** 2;
+      if (d < bestDist) { bestDist = d; best = z; }
+    }
+    return best?.id || '';
+  };
+
+  const selectedZoneName = zones.find(z => z.id === form.zoneId)?.nom || '';
+
   return (
     <div className="cnt-overlay" onClick={onClose}>
       <div className="cnt-modal modal-split" onClick={(e) => e.stopPropagation()}>
@@ -46,10 +65,6 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
         </div>
         <form onSubmit={handleSubmit} className="cnt-modal-form">
           <div className="cnt-form-row">
-            <div className="cnt-field">
-              <label>Code / Nom *</label>
-              <input type="text" value={form.name} onChange={set('name')} placeholder="Ex: CT-001" required />
-            </div>
             <div className="cnt-field">
               <label>Type *</label>
               <select value={form.type} onChange={set('type')}>
@@ -69,13 +84,18 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
               />
             </div>
             <div className="cnt-field">
-              <label>Zone *</label>
-              <select value={form.zoneId} onChange={set('zoneId')} required>
-                <option value="">— Choisir une zone —</option>
-                {zones.map((z) => (
-                  <option key={z.id} value={z.id}>{z.nom || z.name} ({z.code_zone || ''})</option>
-                ))}
-              </select>
+              <label>Zone {form.zoneId ? '' : '*'}</label>
+              {form.zoneId ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '8px 12px', fontSize: '0.84rem', color: '#6ee7b7' }}>
+                  <MapPin size={14} />
+                  <span style={{ flex: 1 }}>{selectedZoneName || 'Zone sélectionnée'}</span>
+                  <button type="button" onClick={() => setForm(f => ({ ...f, zoneId: '' }))} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                </div>
+              ) : (
+                <p style={{ color: '#f59e0b', fontSize: '0.78rem', margin: 0 }}>
+                  <MapPin size={12} style={{ verticalAlign: 'middle' }} /> Cliquez sur 📍 pour placer le conteneur — la zone sera auto-détectée
+                </p>
+              )}
             </div>
           </div>
           <div className="cnt-form-row">
@@ -121,7 +141,12 @@ export default function ContainerForm({ show, editingContainer, zones, onClose, 
         initialLat={form.latitude}
         initialLng={form.longitude}
         onConfirm={(lat, lng) =>
-          setForm((f) => ({ ...f, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }))
+          setForm((f) => ({
+            ...f,
+            latitude: lat.toFixed(6),
+            longitude: lng.toFixed(6),
+            zoneId: findNearestZone(lat, lng),
+          }))
         }
         onClose={() => setShowMap(false)}
       />

@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
 
+const genTag = () => {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+};
+
 const EMPTY = {
   code_capteur: '',
   type: 'REMPLISSAGE',
@@ -26,7 +31,7 @@ export default function CapteurFormModal({ show, capteur, conteneurs, onClose, o
                         : '',
       });
     } else {
-      setForm(EMPTY);
+      setForm({ ...EMPTY, code_capteur: `CAPT-${genTag()}` });
     }
   }, [capteur, show]);
 
@@ -64,17 +69,6 @@ export default function CapteurFormModal({ show, capteur, conteneurs, onClose, o
         </div>
 
         <form onSubmit={handleSubmit} className="cap-modal-form">
-          <div className="cap-field">
-            <label>Code capteur *</label>
-            <input
-              type="text"
-              required
-              placeholder="Ex : CAPT-PC-001-REMPLISSAGE"
-              value={form.code_capteur}
-              onChange={(e) => setForm({ ...form, code_capteur: e.target.value })}
-            />
-          </div>
-
           <div className="cap-field">
             <label>Type *</label>
             <select

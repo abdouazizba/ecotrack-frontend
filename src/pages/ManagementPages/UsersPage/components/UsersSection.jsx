@@ -1,11 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getUsers, createUser, updateUser, deleteUser } from '../../../../services/api';
+import useAuthStore from '../../../../store/authStore';
 import UsersList from './UsersList';
 import UserDetail from './UserDetail';
 import UserForm from './UserForm';
 import './UsersSection.css';
 
+const canManage = (actorRole, targetRole) => {
+  if (actorRole === 'super_admin') return true;
+  if (actorRole === 'admin') return targetRole === 'agent' || targetRole === 'citoyen';
+  return false;
+};
+
 export default function UsersSection() {
+  const currentUserRole = useAuthStore((s) => s.user?.role);
+
   const [users, setUsers]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
@@ -62,6 +71,11 @@ export default function UsersSection() {
   };
 
   const handleDelete = async (id) => {
+    const target = users.find((u) => u.id === id);
+    if (target && !canManage(currentUserRole, target.role)) {
+      setError("Vous n'avez pas la permission de supprimer cet utilisateur");
+      return;
+    }
     try {
       await deleteUser(id);
       if (selectedId === id) setSelectedId(null);
@@ -69,6 +83,12 @@ export default function UsersSection() {
     } catch {
       setError('Erreur lors de la suppression');
     }
+  };
+
+  const handleEditClick = (user) => {
+    if (!canManage(currentUserRole, user.role)) return;
+    setEditingUser(user);
+    setShowForm(true);
   };
 
   return (
@@ -96,7 +116,8 @@ export default function UsersSection() {
         <div className="usr-right">
           <UserDetail
             user={selectedUser}
-            onEdit={(u) => { setEditingUser(u); setShowForm(true); }}
+            currentUserRole={currentUserRole}
+            onEdit={handleEditClick}
             onDelete={handleDelete}
           />
         </div>
@@ -105,6 +126,7 @@ export default function UsersSection() {
       <UserForm
         show={showForm}
         editingUser={editingUser}
+        currentUserRole={currentUserRole}
         onClose={() => { setShowForm(false); setEditingUser(null); }}
         onSubmit={handleFormSubmit}
       />

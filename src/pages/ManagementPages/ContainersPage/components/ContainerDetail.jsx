@@ -1,6 +1,7 @@
-import React from 'react';
-import { Box, Edit2, Trash2, MapPin, Calendar, Layers, Gauge, TrendingUp, Cpu, Thermometer, Wifi, Battery, ChevronRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Box, Edit2, Trash2, MapPin, Calendar, Layers, Gauge, TrendingUp, Cpu, Thermometer, Wifi, Battery, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getSignalementsContainer, getMesuresConteneur } from '../../../../services/api';
 
 const TYPE_META = {
   standard:  { label: 'Standard',   color: '#0d9488', bg: 'rgba(13,148,136,0.12)' },
@@ -29,19 +30,18 @@ const CAP_STATUS = {
 
 const DAYS = ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'J-1', "Auj."];
 
-function buildHistory(id, current) {
-  const seed = id ? String(id).split('').reduce((a, c) => a + c.charCodeAt(0), 0) : 42;
-  return Array.from({ length: 7 }, (_, i) => {
-    if (i === 6) return current;
-    const r = (Math.sin(seed * (i + 1) * 9301 + 49297) * 0.5 + 0.5);
-    const drift = (6 - i) * 4;
-    return Math.min(100, Math.max(0, Math.round(current - drift + r * 20 - 10)));
-  });
-}
-
-function Sparkline({ containerId, currentFill }) {
+function Sparkline({ containerId, currentFill, mesures = [] }) {
   const fill = Math.min(100, Math.max(0, currentFill || 0));
-  const pts  = buildHistory(containerId, fill);
+
+  let pts;
+  if (mesures.length >= 2) {
+    const sorted = [...mesures].sort((a, b) => new Date(a.date_mesure) - new Date(b.date_mesure));
+    const last7 = sorted.slice(-7);
+    pts = last7.map((m) => Math.round(m.fillLevel ?? m.taux_remplissage ?? 0));
+    while (pts.length < 7) pts.unshift(pts[0] ?? 0);
+  } else {
+    pts = Array(7).fill(fill);
+  }
   const color = fill > 80 ? '#ef4444' : fill > 50 ? '#f59e0b' : '#10b981';
 
   const W = 280, H = 60;
@@ -100,8 +100,18 @@ function FillBar({ value }) {
   );
 }
 
+const SIG_STATUS = { pending: { l: 'Ouvert', c: '#f59e0b' }, in_progress: { l: 'En cours', c: '#3b82f6' }, closed: { l: 'Fermé', c: '#10b981' }, rejected: { l: 'Rejeté', c: '#ef4444' } };
+
 export default function ContainerDetail({ container, zones, capteurs = [], onEdit, onDelete }) {
   const navigate = useNavigate();
+  const [sigs, setSigs] = useState([]);
+  const [mesures, setMesures] = useState([]);
+
+  useEffect(() => {
+    if (!container?.id) { setSigs([]); setMesures([]); return; }
+    getSignalementsContainer(container.id).then(d => setSigs(d || [])).catch(() => setSigs([]));
+    getMesuresConteneur(container.id).then(d => setMesures(Array.isArray(d) ? d : [])).catch(() => setMesures([]));
+  }, [container?.id]);
 
   if (!container) {
     return (
@@ -156,7 +166,7 @@ export default function ContainerDetail({ container, zones, capteurs = [], onEdi
       {/* sparkline */}
       <div className="cnt-detail-section">
         <h3><TrendingUp size={14} /> Historique 7 jours</h3>
-        <Sparkline containerId={container.id} currentFill={container.fillLevel} />
+        <Sparkline containerId={container.id} currentFill={container.fillLevel} mesures={mesures} />
       </div>
 
       {/* capteurs associés */}
@@ -199,6 +209,35 @@ export default function ContainerDetail({ container, zones, capteurs = [], onEdi
                 </button>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      {/* signalements liés */}
+      <div className="cnt-detail-section">
+        <h3><AlertTriangle size={14} /> Signalements ({sigs.length})</h3>
+        {sigs.length === 0 ? (
+          <p className="cnt-no-capteurs">Aucun signalement sur ce conteneur</p>
+        ) : (
+          <div className="cnt-capteurs-list">
+            {sigs.slice(0, 5).map((s) => {
+              const sm = SIG_STATUS[s.status] || SIG_STATUS.pending;
+              return (
+                <div key={s.id} className="cnt-capteur-card" style={{ cursor: 'default' }}>
+                  <div className="cnt-capteur-card-left" style={{ background: `${sm.c}18`, color: sm.c }}>
+                    <AlertTriangle size={14} />
+                  </div>
+                  <div className="cnt-capteur-card-body">
+                    <span className="cnt-capteur-code">{s.description?.slice(0, 60) || 'Signalement'}</span>
+                    <div className="cnt-capteur-meta">
+                      <span className="cnt-capteur-status" style={{ color: sm.c }}>● {sm.l}</span>
+                      <span className="cnt-capteur-type">{s.created_at ? new Date(s.created_at).toLocaleDateString('fr-FR') : ''}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {sigs.length > 5 && <p style={{ color: '#64748b', fontSize: '0.78rem', margin: '4px 0 0' }}>+ {sigs.length - 5} autres</p>}
           </div>
         )}
       </div>

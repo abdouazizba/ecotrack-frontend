@@ -1,18 +1,26 @@
 import React from 'react';
-import { Edit2, Trash2, Mail, Calendar, Shield } from 'lucide-react';
+import { Edit2, Trash2, Mail, Calendar, Shield, Lock } from 'lucide-react';
 import { UserAvatar } from './UsersList';
 
 const ROLE_META = {
-  admin: { label: 'Admin', color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
-  agent: { label: 'Agent', color: '#0284c7', bg: 'rgba(2,132,199,0.12)' },
+  super_admin: { label: 'Super Admin', color: '#dc2626', bg: 'rgba(220,38,38,0.12)' },
+  admin:       { label: 'Admin',       color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
+  agent:       { label: 'Agent',       color: '#0284c7', bg: 'rgba(2,132,199,0.12)'  },
+  citoyen:     { label: 'Citoyen',     color: '#65a30d', bg: 'rgba(101,163,13,0.12)' },
 };
 
 const STATUS_META = {
-  active:   { label: 'Actif',   color: '#16a34a', bg: 'rgba(22,163,74,0.12)' },
+  active:   { label: 'Actif',   color: '#16a34a', bg: 'rgba(22,163,74,0.12)'   },
   inactive: { label: 'Inactif', color: '#6b7280', bg: 'rgba(107,114,128,0.12)' },
 };
 
-export default function UserDetail({ user, onEdit, onDelete }) {
+const canManage = (actorRole, targetRole) => {
+  if (actorRole === 'super_admin') return true;
+  if (actorRole === 'admin') return targetRole === 'agent' || targetRole === 'citoyen';
+  return false;
+};
+
+export default function UserDetail({ user, currentUserRole, onEdit, onDelete }) {
   if (!user) {
     return (
       <div className="usr-detail-empty">
@@ -22,11 +30,13 @@ export default function UserDetail({ user, onEdit, onDelete }) {
     );
   }
 
-  const role   = ROLE_META[user.role]   || ROLE_META.agent;
+  const role   = ROLE_META[user.role]    || ROLE_META.agent;
   const status = STATUS_META[user.status] || STATUS_META.active;
   const name = (user.firstName || user.lastName)
     ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
     : user.email?.split('@')[0];
+
+  const managed = canManage(currentUserRole, user.role);
 
   return (
     <div className="usr-detail">
@@ -45,15 +55,23 @@ export default function UserDetail({ user, onEdit, onDelete }) {
           </div>
         </div>
         <div className="usrd-actions">
-          <button className="usrd-btn-edit" onClick={() => onEdit(user)}>
-            <Edit2 size={14} /> Modifier
-          </button>
-          <button
-            className="usrd-btn-delete"
-            onClick={() => window.confirm('Supprimer cet utilisateur ?') && onDelete(user.id)}
-          >
-            <Trash2 size={15} />
-          </button>
+          {managed ? (
+            <>
+              <button className="usrd-btn-edit" onClick={() => onEdit(user)}>
+                <Edit2 size={14} /> Modifier
+              </button>
+              <button
+                className="usrd-btn-delete"
+                onClick={() => window.confirm('Supprimer cet utilisateur ?') && onDelete(user.id)}
+              >
+                <Trash2 size={15} />
+              </button>
+            </>
+          ) : (
+            <span className="usrd-readonly-badge" title="Accès lecture seule">
+              <Lock size={13} /> Lecture seule
+            </span>
+          )}
         </div>
       </div>
 
