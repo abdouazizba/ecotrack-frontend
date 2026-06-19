@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getTournees, createTournee, updateTournee, deleteTournee,
   updateTourneeStatus, addSignalementToTournee, removeSignalementFromTournee,
-  getSignalements, getAgents, getZones,
+  getSignalementsByTournee, assignAgentToTournee, removeAgentFromTournee,
+  getSignalements, getAgents, getZones, getContainers,
 } from '../../../services/api';
 import {
   TourneesList,
   TourneeDetail,
   CreateTourneeModal,
   AddSignalementsModal,
-  AssignAgentModal,
 } from './components';
 import './TourneesPage.css';
 
@@ -21,13 +21,15 @@ export default function TourneesPage() {
   const [agents, setAgents]                   = useState([]);
   const [zones, setZones]                     = useState([]);
   const [allSignalements, setAllSignalements] = useState([]);
+  const [containers, setContainers]           = useState([]);
   const [loading, setLoading]                 = useState(true);
   const [error, setError]                     = useState(null);
 
   const [showCreate, setShowCreate]           = useState(false);
   const [editTarget, setEditTarget]           = useState(null);
   const [showAddSig, setShowAddSig]           = useState(false);
-  const [assignTarget, setAssignTarget]       = useState(null);
+  const [tourneeSignalements, setTourneeSignalements] = useState([]);
+  const [sigsLoading, setSigsLoading]         = useState(false);
 
   // ── Chargement initial ────────────────────────────────────────────────────
   const loadTournees = useCallback(async () => {
@@ -47,14 +49,34 @@ export default function TourneesPage() {
       getSignalements(),
       getAgents(),
       getZones(),
-    ]).then(([, sRes, aRes, zRes]) => {
+      getContainers(),
+    ]).then(([, sRes, aRes, zRes, cRes]) => {
       if (sRes.status === 'fulfilled')
-        setAllSignalements((sRes.value || []).filter((s) => s.status === 'pending'));
+        setAllSignalements(
+          (sRes.value || []).filter((s) => s.status === 'pending' && !s.id_tournee)
+        );
       if (aRes.status === 'fulfilled') setAgents(aRes.value || []);
       if (zRes.status === 'fulfilled') setZones(zRes.value  || []);
+      if (cRes.status === 'fulfilled') setContainers(cRes.value || []);
       setLoading(false);
     });
   }, [loadTournees]);
+
+  // ── Chargement signalements d'une tournée ──────────────────────────────────
+  useEffect(() => {
+    if (!selectedId) { setTourneeSignalements([]); return; }
+    setSigsLoading(true);
+    getSignalementsByTournee(selectedId)
+      .then((sigs) => setTourneeSignalements(Array.isArray(sigs) ? sigs : []))
+      .catch(() => setTourneeSignalements([]))
+      .finally(() => setSigsLoading(false));
+  }, [selectedId]);
+
+  const reloadTourneeSignalements = useCallback(async () => {
+    if (!selectedId) return;
+    const sigs = await getSignalementsByTournee(selectedId);
+    setTourneeSignalements(Array.isArray(sigs) ? sigs : []);
+  }, [selectedId]);
 
   // ── Computed ──────────────────────────────────────────────────────────────
   const selectedTournee = useMemo(
@@ -62,30 +84,77 @@ export default function TourneesPage() {
     [tournees, selectedId]
   );
 
-  const filtered = useMemo(
-    () => filter === 'all' ? tournees : tournees.filter((t) => t.status === filter),
-    [tournees, filter]
-  );
+  const filtered = useMemo(() => {
+    if (filter === 'all') return tournees;
+    if (filter === 'today') {
+      const today = new Date().toISOString().slice(0, 10);
+      return tournees.filter((t) => (t.date_prevue || '').slice(0, 10) === today);
+    }
+    return tournees.filter((t) => t.status === filter);
+  }, [tournees, filter]);
 
+  // Map conteneurId → zoneId for quick zone lookup
+  const conteneurZoneMap = useMemo(() => {
+    const map = {};
+    containers.forEach((c) => { if (c.id) map[c.id] = c.zoneId || null; });
+    return map;
+  }, [containers]);
+
+  // Count of unassigned pending signalements per zone + list of their ids
+  const { zoneSigCounts, zoneSigIds } = useMemo(() => {
+    const counts = {};
+    const ids    = {};
+    allSignalements.forEach((s) => {
+      const zid = s.id_zone || conteneurZoneMap[s.id_conteneur] || null;
+      if (!zid) return;
+      counts[zid] = (counts[zid] || 0) + 1;
+      ids[zid] = ids[zid] ? [...ids[zid], s.id] : [s.id];
+    });
+    return { zoneSigCounts: counts, zoneSigIds: ids };
+  }, [allSignalements, conteneurZoneMap]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCreateTournee = useCallback(async (formData) => {
     try {
-      const agent = agents.find((a) => String(a.id) === String(formData.agent_id));
-      const zone  = zones.find((z) => String(z.id) === String(formData.zone_id));
-      await createTournee({
-        titre:      formData.titre || `Tournée ${zone?.nom || ''} — ${formData.date_prevue}`,
-        zone_id:    formData.zone_id,
-        agent_id:   agent?.id || null,
+      const created = await createTournee({
+        titre:       formData.titre || `Tournée du ${formData.date_prevue}`,
         date_prevue: formData.date_prevue,
-        status:     'pending',
+        heure_debut: formData.heure_debut || null,
+        status:      'pending',
       });
+      if (!created?.id) throw new Error('Tournée créée sans ID');
+
+      // Assigner le responsable (CONDUCTEUR) puis les agents en soutien (COLLECTEUR)
+      const agentJobs = [];
+      if (formData.agent_id) {
+        agentJobs.push(assignAgentToTournee(created.id, formData.agent_id, 'CONDUCTEUR'));
+      }
+      (formData.support_agent_ids || []).forEach((id) => {
+        agentJobs.push(assignAgentToTournee(created.id, id, 'COLLECTEUR'));
+      });
+      if (agentJobs.length) {
+        const results = await Promise.allSettled(agentJobs);
+        const failed = results.filter((r) => r.status === 'rejected');
+        if (failed.length) console.warn(`${failed.length} agent(s) non assigné(s):`, failed.map((r) => r.reason?.message));
+      }
+
+      // Auto-assigner les signalements des zones sélectionnées
+      const selectedZones = formData.selected_zone_ids || [];
+      if (selectedZones.length > 0) {
+        const sigIds = selectedZones.flatMap((zid) => zoneSigIds[zid] || []);
+        if (sigIds.length > 0) {
+          await addSignalementToTournee(created.id, sigIds).catch(() => {});
+        }
+      }
+
       await loadTournees();
       setShowCreate(false);
-    } catch {
+      setSelectedId(created.id);
+      setFilter('all');
+    } catch (err) {
       setError('Erreur lors de la création de la tournée');
     }
-  }, [agents, zones, loadTournees]);
+  }, [loadTournees, zoneSigIds]);
 
   const handleEditTournee = useCallback(async (formData) => {
     if (!editTarget) return;
@@ -129,74 +198,37 @@ export default function TourneesPage() {
   const handleTourneeAgentChange = useCallback(async (agentId) => {
     if (!selectedId) return;
     try {
-      const agent = agents.find((a) => a.id === agentId);
-      await updateTournee(selectedId, {
-        ...selectedTournee,
-        agent_id: agent?.id || null,
-      });
+      if (selectedTournee?.agent_id) {
+        await removeAgentFromTournee(selectedId, selectedTournee.agent_id).catch(() => {});
+      }
+      if (agentId) {
+        await assignAgentToTournee(selectedId, agentId, 'COLLECTEUR');
+      }
       await loadTournees();
     } catch {
       setError("Erreur lors de l'assignation de l'agent");
     }
-  }, [selectedId, selectedTournee, agents, loadTournees]);
+  }, [selectedId, selectedTournee, loadTournees]);
 
   const handleAddSignalements = useCallback(async (pickedIds) => {
     if (!selectedId) return;
     try {
       await addSignalementToTournee(selectedId, pickedIds);
-      await loadTournees();
+      await reloadTourneeSignalements();
+      setAllSignalements((prev) => prev.filter((s) => !pickedIds.includes(s.id)));
     } catch {
-      // fallback local si le endpoint n'existe pas encore
-      const toAdd = allSignalements
-        .filter((s) => pickedIds.includes(s.id))
-        .map((s) => ({ ...s, assigned_agent_id: null, assigned_agent_nom: null }));
-      setTournees((prev) =>
-        prev.map((t) =>
-          t.id === selectedId
-            ? { ...t, signalements: [...(t.signalements || []), ...toAdd] }
-            : t
-        )
-      );
+      setError("Erreur lors de l'ajout des signalements");
     }
     setShowAddSig(false);
-  }, [selectedId, allSignalements, loadTournees]);
+  }, [selectedId, reloadTourneeSignalements]);
 
   const handleRemoveSignalement = useCallback(async (sigId) => {
     try {
       await removeSignalementFromTournee(selectedId, sigId);
     } catch {
-      // endpoint optionnel — on continue dans tous les cas
+      // on continue même si l'API échoue
     }
-    setTournees((prev) =>
-      prev.map((t) =>
-        t.id === selectedId
-          ? { ...t, signalements: (t.signalements || []).filter((s) => s.id !== sigId) }
-          : t
-      )
-    );
-  }, [selectedId]);
-
-  const handleAssignAgent = useCallback((sigId, agent) => {
-    setTournees((prev) =>
-      prev.map((t) =>
-        t.id === selectedId
-          ? {
-              ...t,
-              signalements: (t.signalements || []).map((s) =>
-                s.id === sigId
-                  ? {
-                      ...s,
-                      assigned_agent_id:  agent?.id || null,
-                      assigned_agent_nom: agent
-                        ? `${agent.firstName} ${agent.lastName}`
-                        : null,
-                    }
-                  : s
-              ),
-            }
-          : t
-      )
-    );
+    setTourneeSignalements((prev) => prev.filter((s) => s.id !== sigId));
   }, [selectedId]);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -223,12 +255,12 @@ export default function TourneesPage() {
         <div className="tournees-right">
           <TourneeDetail
             tournee={selectedTournee}
+            sigs={tourneeSignalements}
+            sigsLoading={sigsLoading}
             agents={agents}
             onStatusChange={handleStatusChange}
             onDelete={handleDeleteTournee}
-            onAgentChange={handleTourneeAgentChange}
             onAddSigClick={() => setShowAddSig(true)}
-            onAssignClick={(sig) => setAssignTarget(sig)}
             onRemoveSignalement={handleRemoveSignalement}
             onEditClick={(t) => setEditTarget(t)}
           />
@@ -240,6 +272,7 @@ export default function TourneesPage() {
         zones={zones}
         agents={agents}
         tournees={tournees}
+        zoneSigCounts={zoneSigCounts}
         onClose={() => setShowCreate(false)}
         onSubmit={handleCreateTournee}
       />
@@ -263,13 +296,6 @@ export default function TourneesPage() {
         onSubmit={handleAddSignalements}
       />
 
-      <AssignAgentModal
-        show={!!assignTarget}
-        signalement={assignTarget}
-        agents={agents}
-        onClose={() => setAssignTarget(null)}
-        onSubmit={handleAssignAgent}
-      />
     </div>
   );
 }

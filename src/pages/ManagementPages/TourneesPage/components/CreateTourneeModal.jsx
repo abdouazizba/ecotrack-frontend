@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle, MapPin, UserCheck, Users, Clock } from 'lucide-react';
 import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
+import ZoneMapPicker from './ZoneMapPicker';
 
-const EMPTY_FORM = { titre: '', zone_id: '', zone_nom: '', date_prevue: '', agent_id: '' };
+const genTag = () => {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+};
 
-export default function CreateTourneeModal({ show, zones, agents, tournees = [], initialData, onClose, onSubmit }) {
+const EMPTY_FORM = {
+  titre: '', selected_zone_ids: [], date_prevue: '', heure_debut: '',
+  agent_id: '', support_agent_ids: [],
+};
+
+export default function CreateTourneeModal({
+  show, zones, agents, tournees = [], zoneSigCounts = {}, initialData, onClose, onSubmit,
+}) {
   const [form, setForm] = useState(EMPTY_FORM);
   const isEdit = !!initialData;
 
@@ -13,13 +24,17 @@ export default function CreateTourneeModal({ show, zones, agents, tournees = [],
       setForm(
         initialData
           ? {
-              titre:      initialData.titre      || '',
-              zone_id:    initialData.zone_id     || '',
-              zone_nom:   initialData.zone_nom    || '',
-              date_prevue: initialData.date_prevue || '',
-              agent_id:   initialData.agent_id    || '',
+              titre:             initialData.titre      || '',
+              selected_zone_ids: initialData.zone_id ? [initialData.zone_id] : [],
+              date_prevue:       initialData.date_prevue || '',
+              heure_debut:       initialData.heure_debut || '',
+              agent_id:          initialData.agent_id    || '',
+              // pour l'edit, pre-remplir les agents en soutien depuis initialData.agents
+              support_agent_ids: (initialData.agents || [])
+                .filter((a) => a.role !== 'CONDUCTEUR')
+                .map((a) => a.id),
             }
-          : EMPTY_FORM
+          : { ...EMPTY_FORM, titre: `TRN-${genTag()}` }
       );
     }
   }, [show, initialData]);
@@ -40,22 +55,42 @@ export default function CreateTourneeModal({ show, zones, agents, tournees = [],
     ? agents.find((a) => String(a.id) === String(form.agent_id))
     : null;
 
+  const toggleZone = (zoneId) =>
+    setForm((prev) => ({
+      ...prev,
+      selected_zone_ids: prev.selected_zone_ids.includes(zoneId)
+        ? prev.selected_zone_ids.filter((id) => id !== zoneId)
+        : [...prev.selected_zone_ids, zoneId],
+    }));
+
+  const toggleSupportAgent = (agentId) =>
+    setForm((prev) => ({
+      ...prev,
+      support_agent_ids: prev.support_agent_ids.includes(agentId)
+        ? prev.support_agent_ids.filter((id) => id !== agentId)
+        : [...prev.support_agent_ids, agentId],
+    }));
+
+  const totalSigs = form.selected_zone_ids.reduce(
+    (sum, zid) => sum + (zoneSigCounts[zid] || 0), 0
+  );
+
+  // agents disponibles comme soutien = tous sauf le responsable
+  const supportCandidates = agents.filter(
+    (a) => !form.agent_id || String(a.id) !== String(form.agent_id)
+  );
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const zone  = zones.find((z) => String(z.id) === String(form.zone_id));
     const agent = agents.find((a) => String(a.id) === String(form.agent_id));
     onSubmit({
       ...form,
-      zone_nom:  zone?.nom || form.zone_id,
       agent_nom: agent ? `${agent.firstName} ${agent.lastName}` : null,
     });
     setForm(EMPTY_FORM);
   };
 
-  const handleClose = () => {
-    setForm(EMPTY_FORM);
-    onClose();
-  };
+  const handleClose = () => { setForm(EMPTY_FORM); onClose(); };
 
   return (
     <div className="t-overlay" onClick={handleClose}>
@@ -67,42 +102,73 @@ export default function CreateTourneeModal({ show, zones, agents, tournees = [],
             <button className="t-modal-close" onClick={handleClose}><X size={18} /></button>
           </div>
           <form onSubmit={handleSubmit} className="t-modal-form">
+
+            {/* Zones — sélection sur carte */}
             <div className="t-field">
-              <label>Titre</label>
-              <input
-                type="text"
-                value={form.titre}
-                onChange={(e) => setForm({ ...form, titre: e.target.value })}
-                placeholder="Ex : Tournée Zone Nord — Matin"
-              />
+              <label>
+                <MapPin size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                Zones à couvrir
+                {form.selected_zone_ids.length > 0 && (
+                  <span className="t-zone-sig-total">
+                    {form.selected_zone_ids.length} zone{form.selected_zone_ids.length > 1 ? 's' : ''}
+                    {totalSigs > 0 && ` · ${totalSigs} sig.`}
+                  </span>
+                )}
+              </label>
+              {zones.length === 0 ? (
+                <p className="t-no-zones">Aucune zone disponible</p>
+              ) : (
+                <ZoneMapPicker
+                  zones={zones}
+                  selectedIds={form.selected_zone_ids}
+                  sigCounts={zoneSigCounts}
+                  onToggle={toggleZone}
+                />
+              )}
             </div>
-            <div className="t-field">
-              <label>Zone *</label>
-              <select
-                required
-                value={form.zone_id}
-                onChange={(e) => setForm({ ...form, zone_id: e.target.value })}
-              >
-                <option value="">— Choisir une zone —</option>
-                {zones.map((z) => (
-                  <option key={z.id} value={z.id}>{z.nom}</option>
-                ))}
-              </select>
+
+            {/* Date + Heure */}
+            <div className="t-field" style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: 2 }}>
+                <label>Date prévue *</label>
+                <input
+                  type="date"
+                  required
+                  value={form.date_prevue}
+                  onChange={(e) => setForm({ ...form, date_prevue: e.target.value })}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label>
+                  <Clock size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />
+                  Heure début
+                </label>
+                <input
+                  type="time"
+                  value={form.heure_debut}
+                  onChange={(e) => setForm({ ...form, heure_debut: e.target.value })}
+                  placeholder="07:00"
+                />
+              </div>
             </div>
+
+            {/* Agent responsable */}
             <div className="t-field">
-              <label>Date prévue *</label>
-              <input
-                type="date"
-                required
-                value={form.date_prevue}
-                onChange={(e) => setForm({ ...form, date_prevue: e.target.value })}
-              />
-            </div>
-            <div className="t-field">
-              <label>Agent responsable</label>
+              <label>
+                <UserCheck size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                Agent responsable
+              </label>
               <select
                 value={form.agent_id}
-                onChange={(e) => setForm({ ...form, agent_id: e.target.value })}
+                onChange={(e) => {
+                  const newId = e.target.value;
+                  // retirer du soutien si sélectionné comme responsable
+                  setForm((prev) => ({
+                    ...prev,
+                    agent_id: newId,
+                    support_agent_ids: prev.support_agent_ids.filter((id) => id !== newId),
+                  }));
+                }}
               >
                 <option value="">— Non assigné —</option>
                 {agents.map((a) => (
@@ -119,6 +185,38 @@ export default function CreateTourneeModal({ show, zones, agents, tournees = [],
                 </div>
               )}
             </div>
+
+            {/* Agents en soutien */}
+            {supportCandidates.length > 0 && (
+              <div className="t-field">
+                <label>
+                  <Users size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                  Agents en soutien
+                  {form.support_agent_ids.length > 0 && (
+                    <span className="t-zone-sig-total">
+                      {form.support_agent_ids.length} sélectionné{form.support_agent_ids.length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </label>
+                <div className="t-zone-list">
+                  {supportCandidates.map((a) => {
+                    const checked = form.support_agent_ids.includes(a.id);
+                    return (
+                      <label key={a.id} className={`t-zone-item${checked ? ' t-zone-item--checked' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleSupportAgent(a.id)}
+                        />
+                        <span className="t-zone-name">{a.firstName} {a.lastName}</span>
+                        <span className="t-zone-empty" style={{ fontSize: 10 }}>soutien</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="t-modal-footer">
               <button type="button" className="t-btn-cancel" onClick={handleClose}>Annuler</button>
               <button type="submit" className="t-btn-confirm">

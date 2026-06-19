@@ -1,10 +1,11 @@
 import React from 'react';
-import { Plus, MapPin, Calendar, User, ClipboardList } from 'lucide-react';
+import { Plus, MapPin, Calendar, User, ClipboardList, Clock } from 'lucide-react';
 import { TOURNEE_STATUS } from '../utils/constants';
 
 export default function TourneesList({ tournees, selectedId, filter, loading, onSelect, onFilterChange, onCreateClick }) {
   const FILTERS = [
     ['all', 'Toutes'],
+    ['today', "Aujourd'hui"],
     ['pending', 'À planifier'],
     ['in_progress', 'En cours'],
     ['done', 'Terminées'],
@@ -53,6 +54,7 @@ export default function TourneesList({ tournees, selectedId, filter, loading, on
               <div className="tlc-meta">
                 <span><MapPin size={12} /> {t.zone_nom || '—'}</span>
                 <span><Calendar size={12} /> {t.date_prevue || '—'}</span>
+                {t.heure_debut && <span><Clock size={12} /> {t.heure_debut}</span>}
               </div>
               <div className="tlc-meta">
                 <span><User size={12} /> {t.agent_nom || 'Non assigné'}</span>
