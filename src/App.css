@@ -5,6 +5,33 @@
   --spacing-compact: 12px;
   --spacing-normal: 16px;
   --spacing-medium: 20px;
+
+  /* Theme — dark (default) */
+  --bg-primary: #0f1419;
+  --bg-secondary: #1e2433;
+  --bg-card: #1e2433;
+  --bg-content: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --hover-bg: rgba(255, 255, 255, 0.04);
+  --scrollbar-thumb: #334155;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-content: linear-gradient(135deg, #f5f9f8 0%, #ffffff 100%);
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --input-bg: #f1f5f9;
+  --hover-bg: #f8fafc;
+  --scrollbar-thumb: #cbd5e1;
 }
 
 /* Dashboard Layout Styles - Fixed Sidebar + Content */
