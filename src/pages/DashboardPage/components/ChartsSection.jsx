@@ -180,15 +180,103 @@ function buildTopAgents(signalements, agents) {
   };
 }
 
+function buildTourneeStatus(tournees) {
+  const STATUTS = [
+    { key: 'pending',     label: 'Planifiée',  color: COLORS.amber },
+    { key: 'in_progress', label: 'En cours',   color: COLORS.blue },
+    { key: 'done',        label: 'Terminée',   color: COLORS.green },
+    { key: 'cancelled',   label: 'Annulée',    color: COLORS.red },
+  ];
+  const counts = {};
+  tournees.forEach((t) => { counts[t.status] = (counts[t.status] || 0) + 1; });
+  const items = STATUTS.map((s) => ({ value: counts[s.key] || 0, name: s.label, itemStyle: { color: s.color } })).filter((i) => i.value > 0);
+
+  return {
+    tooltip: { ...TOOLTIP, trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { bottom: 0, textStyle: { color: '#64748b', fontSize: 12 } },
+    series: [{
+      type: 'pie', radius: ['42%', '68%'], center: ['50%', '44%'],
+      data: items.length ? items : [{ value: 1, name: 'Aucune donnée', itemStyle: { color: '#e2e8f0' } }],
+      itemStyle: { borderColor: '#fff', borderWidth: 2 },
+      label: { show: false },
+      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.2)' } },
+    }],
+  };
+}
+
+function buildTourneeEvolution(tournees) {
+  const weeks = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (5 - i) * 7);
+    return d;
+  });
+  const labels = weeks.map((d) =>
+    `Sem. ${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
+  );
+  const completed = weeks.map((d, i) => {
+    const start = new Date(d);
+    const end = i < weeks.length - 1 ? new Date(weeks[i + 1]) : new Date();
+    return tournees.filter((t) => {
+      if (t.status !== 'done') return false;
+      const td = new Date(t.date_prevue || t.created_at);
+      return td >= start && td < end;
+    }).length;
+  });
+  const planned = weeks.map((d, i) => {
+    const start = new Date(d);
+    const end = i < weeks.length - 1 ? new Date(weeks[i + 1]) : new Date();
+    return tournees.filter((t) => {
+      const td = new Date(t.date_prevue || t.created_at);
+      return td >= start && td < end;
+    }).length;
+  });
+
+  return {
+    tooltip: { ...TOOLTIP, trigger: 'axis' },
+    legend: { data: ['Planifiées', 'Terminées'], textStyle: { color: '#64748b' }, bottom: 0 },
+    grid: GRID,
+    xAxis: { type: 'category', data: labels, axisLabel: { color: '#64748b', fontSize: 10 }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+    yAxis: { type: 'value', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#f1f5f9' } }, minInterval: 1 },
+    series: [
+      { name: 'Planifiées', data: planned, type: 'bar', itemStyle: { color: COLORS.amber, borderRadius: [4, 4, 0, 0] }, barMaxWidth: 24 },
+      { name: 'Terminées', data: completed, type: 'bar', itemStyle: { color: COLORS.green, borderRadius: [4, 4, 0, 0] }, barMaxWidth: 24 },
+    ],
+  };
+}
+
+function buildContainersByZone(containers, zones) {
+  const zoneData = zones.map((z) => {
+    const count = containers.filter((c) => c.zoneId === z.id).length;
+    return { nom: z.nom || `Zone ${z.id}`, count };
+  }).filter((z) => z.count > 0).sort((a, b) => b.count - a.count).slice(0, 8);
+
+  return {
+    tooltip: { ...TOOLTIP, trigger: 'axis', formatter: '{b}: {c} conteneurs' },
+    grid: { left: '2%', right: '8%', bottom: '3%', top: '5%', containLabel: true },
+    xAxis: { type: 'value', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#f1f5f9' } }, minInterval: 1 },
+    yAxis: { type: 'category', data: zoneData.map((z) => z.nom), axisLabel: { color: '#64748b', fontSize: 11 } },
+    series: [{
+      type: 'bar',
+      data: zoneData.map((z) => ({
+        value: z.count,
+        itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: COLORS.blue }, { offset: 1, color: COLORS.sky }] }, borderRadius: [0, 6, 6, 0] },
+      })),
+    }],
+  };
+}
+
 // ── component ─────────────────────────────────────────────────────────────────
 
-export default function ChartsSection({ containers, signalements, zones, agents, loading }) {
+export default function ChartsSection({ containers, signalements, zones, agents, tournees = [], loading }) {
   const evolution  = useMemo(() => buildEvolution(signalements), [signalements]);
   const byType     = useMemo(() => buildSignalByType(signalements), [signalements]);
   const priority   = useMemo(() => buildPriority(signalements), [signalements]);
   const statut     = useMemo(() => buildStatutSig(signalements), [signalements]);
   const fillZone   = useMemo(() => buildFillByZone(containers, zones), [containers, zones]);
   const topAgents  = useMemo(() => buildTopAgents(signalements, agents), [signalements, agents]);
+  const tourneeStatus   = useMemo(() => buildTourneeStatus(tournees), [tournees]);
+  const tourneeEvo      = useMemo(() => buildTourneeEvolution(tournees), [tournees]);
+  const containersByZone = useMemo(() => buildContainersByZone(containers, zones), [containers, zones]);
 
   if (loading) {
     return (
@@ -234,6 +322,23 @@ export default function ChartsSection({ containers, signalements, zones, agents,
         </div>
         <div className="chart-wrapper">
           <ChartCard title="Top 5 Agents — Signalements Traités" option={topAgents} height={300} />
+        </div>
+      </div>
+
+      {/* Row 4 — Tournées */}
+      <div className="charts-grid-2col">
+        <div className="chart-wrapper">
+          <ChartCard title="Tournées — Évolution Hebdomadaire" option={tourneeEvo} height={300} />
+        </div>
+        <div className="chart-wrapper">
+          <ChartCard title="Répartition des Tournées par Statut" option={tourneeStatus} height={300} />
+        </div>
+      </div>
+
+      {/* Row 5 — Conteneurs */}
+      <div className="charts-grid-2col">
+        <div className="chart-wrapper">
+          <ChartCard title="Conteneurs par Zone" option={containersByZone} height={300} />
         </div>
       </div>
     </>

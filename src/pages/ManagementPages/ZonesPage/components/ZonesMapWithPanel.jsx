@@ -227,13 +227,68 @@ export default function ZonesMapWithPanel() {
     }
   }, [zones, panelView]);
 
-  const handleShapeCreated = useCallback(({ center, geojson }) => {
+  const getNextZoneLetter = useCallback(() => {
+    const usedLetters = new Set(
+      zones.map(z => {
+        const m = z.code_zone?.match(/^ZONE-([A-Z]+)$/);
+        return m ? m[1] : null;
+      }).filter(Boolean)
+    );
+    for (let i = 0; i < 26; i++) {
+      const letter = String.fromCharCode(65 + i);
+      if (!usedLetters.has(letter)) return letter;
+    }
+    return `Z${zones.length + 1}`;
+  }, [zones]);
+
+  const computeGeoJSONAreaKm2 = useCallback((geojson) => {
+    try {
+      const coords = geojson?.geometry?.coordinates?.[0] || geojson?.coordinates?.[0];
+      if (!coords || coords.length < 3) return 0;
+      const toRad = (d) => (d * Math.PI) / 180;
+      const R = 6371;
+      let area = 0;
+      for (let i = 0; i < coords.length; i++) {
+        const j = (i + 1) % coords.length;
+        const [lng1, lat1] = coords[i];
+        const [lng2, lat2] = coords[j];
+        area += toRad(lng2 - lng1) * (2 + Math.sin(toRad(lat1)) + Math.sin(toRad(lat2)));
+      }
+      return Math.abs((area * R * R) / 2);
+    } catch { return 0; }
+  }, []);
+
+  const handleShapeCreated = useCallback(async ({ center, geojson }) => {
     setDrawnShape({ center, geojson });
-    setFormData(f => ({ ...f, latitude: center.lat.toFixed(6), longitude: center.lng.toFixed(6) }));
+    const letter = getNextZoneLetter();
+    const code = `ZONE-${letter}`;
+    setFormData(f => ({ ...f, latitude: center.lat.toFixed(6), longitude: center.lng.toFixed(6), code_zone: code }));
     setEditingId(null);
     setPanelView('form');
     setPanelOpen(true);
-  }, []);
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${center.lat}&lon=${center.lng}&format=json&zoom=14&accept-language=fr`);
+      if (res.ok) {
+        const data = await res.json();
+        const addr = data.address || {};
+        const placeName = addr.suburb || addr.neighbourhood || addr.village || addr.town || addr.city_district || addr.city || addr.municipality || '';
+
+        const isUrban = Boolean(addr.suburb || addr.city_district || addr.neighbourhood);
+        const isSuburban = Boolean(addr.town || addr.municipality);
+        const density = isUrban ? 12000 : isSuburban ? 3000 : 800;
+
+        const areaKm2 = computeGeoJSONAreaKm2(geojson);
+        const pop = areaKm2 > 0 ? Math.round(areaKm2 * density) : '';
+
+        setFormData(f => ({
+          ...f,
+          ...(placeName ? { nom: `Zone ${letter} - ${placeName}` } : {}),
+          ...(pop ? { population_estimee: pop } : {}),
+        }));
+      }
+    } catch { /* non-critique */ }
+  }, [getNextZoneLetter, computeGeoJSONAreaKm2]);
 
   const handleOpenCreate = useCallback(() => {
     resetForm();
@@ -284,8 +339,12 @@ export default function ZonesMapWithPanel() {
       }
       setPanelView(backTo);
       resetForm();
-    } catch {
-      setError('Erreur lors de la sauvegarde');
+    } catch (err) {
+      const serverMsg = err.response?.data?.errors?.[0]?.msg
+        || err.response?.data?.error
+        || err.response?.data?.message
+        || 'Erreur lors de la sauvegarde';
+      setError(serverMsg);
     } finally {
       setSaving(false);
     }
@@ -530,16 +589,21 @@ export default function ZonesMapWithPanel() {
                 <form onSubmit={handleSubmit} id="zone-form" className="zone-form">
                   <div className="form-group">
                     <label>Nom de la zone *</label>
-                    <input type="text" required autoFocus placeholder="Ex : Zone Nord"
+                    <input type="text" required autoFocus placeholder="Ex : Zone A - Montmartre"
                       value={formData.nom}
-                      onChange={e => setFormData(d => ({ ...d, nom: e.target.value }))}
+                      onChange={e => {
+                        const nom = e.target.value;
+                        const m = nom.match(/^Zone\s+([A-Z0-9]+)/i);
+                        const code = m ? `ZONE-${m[1].toUpperCase()}` : formData.code_zone;
+                        setFormData(d => ({ ...d, nom, code_zone: code }));
+                      }}
                     />
                   </div>
                   <div className="form-group">
-                    <label>Code zone</label>
-                    <input type="text" placeholder="Ex : ZN-001"
+                    <label>Code zone <span style={{ fontSize: '0.72em', color: '#64748b' }}>(auto-généré)</span></label>
+                    <input type="text" placeholder="ZONE-A" readOnly
                       value={formData.code_zone}
-                      onChange={e => setFormData(d => ({ ...d, code_zone: e.target.value }))}
+                      style={{ opacity: 0.7, cursor: 'default' }}
                     />
                   </div>
                   <div className="form-row">

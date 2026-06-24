@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import { loginUser, registerPublic, getCurrentUserProfile } from '../../services/api';
@@ -39,7 +39,15 @@ export default function LoginPage() {
   const [regPwdError, setRegPwdError] = useState('');
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { loginWithTokens, login, updateUserProfile } = useAuthStore();
+
+  useEffect(() => {
+    if (searchParams.get('session') === 'expired') {
+      setError('Votre session a expiré. Veuillez vous reconnecter.');
+      setStep('login');
+    }
+  }, [searchParams]);
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Download } from 'lucide-react';
 import {
   getTournees, createTournee, updateTournee, deleteTournee,
   updateTourneeStatus, addSignalementToTournee, removeSignalementFromTournee,
   getSignalementsByTournee, assignAgentToTournee, removeAgentFromTournee,
   getSignalements, getAgents, getZones, getContainers,
 } from '../../../services/api';
+import { exportToCsv } from '../../../utils/exportCsv';
 import {
   TourneesList,
   TourneeDetail,
@@ -231,6 +233,27 @@ export default function TourneesPage() {
     setTourneeSignalements((prev) => prev.filter((s) => s.id !== sigId));
   }, [selectedId]);
 
+  const handleExportCsv = useCallback(() => {
+    const headers = [
+      { key: 'code',       label: 'Code' },
+      { key: 'date',       label: 'Date' },
+      { key: 'status',     label: 'Statut' },
+      { key: 'distance',   label: 'Distance (km)' },
+      { key: 'conteneurs', label: 'Conteneurs collectés' },
+      { key: 'notes',      label: 'Notes' },
+    ];
+    const rows = filtered.map((t) => ({
+      code:       t.titre || t.code || t.id || '',
+      date:       t.date_prevue ? new Date(t.date_prevue).toLocaleDateString('fr-FR') : '',
+      status:     t.status || '',
+      distance:   t.distance_km != null ? t.distance_km : (t.distance || ''),
+      conteneurs: t.conteneurs_collectes != null ? t.conteneurs_collectes : (t.signalements ? t.signalements.length : ''),
+      notes:      t.notes || '',
+    }));
+    const today = new Date().toISOString().slice(0, 10);
+    exportToCsv(`tournees_${today}.csv`, headers, rows);
+  }, [filtered]);
+
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="tournees-page">
@@ -240,6 +263,15 @@ export default function TourneesPage() {
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 12px 8px' }}>
+        <button
+          onClick={handleExportCsv}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 500 }}
+        >
+          <Download size={14} /> Exporter CSV
+        </button>
+      </div>
 
       <div className="tournees-split">
         <TourneesList

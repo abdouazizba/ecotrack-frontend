@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Home, Route, Package, LogOut, Menu, X } from 'lucide-react';
+import { Home, Route, Navigation, LogOut, Menu, X, User } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import LogoutModal from '../../components/common/LogoutModal';
 import Navbar from '../../components/navigation/Navbar';
@@ -10,7 +10,8 @@ import './AgentPortal.css';
 const NAV_ITEMS = [
   { to: '/agent',            label: 'Tableau de bord', Icon: Home,    end: true },
   { to: '/agent/tournees',   label: 'Mes tournées',    Icon: Route },
-  { to: '/agent/conteneurs', label: 'Conteneurs',      Icon: Package },
+  { to: '/agent/ma-tournee', label: 'Ma Tournée',       Icon: Navigation },
+  { to: '/agent/profil',     label: 'Mon profil',      Icon: User },
 ];
 
 export default function AgentPortal() {

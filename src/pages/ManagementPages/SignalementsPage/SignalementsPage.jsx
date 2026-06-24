@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Download, Zap } from 'lucide-react';
 import {
   getSignalements, patchSignalement, deleteSignalement,
-  getAgents, getContainers, getZones,
+  getAgents, getContainers, getZones, getTournees, autoAssignSignalements,
 } from '../../../services/api';
+import { exportToCsv } from '../../../utils/exportCsv';
 import SignalementsList from './components/SignalementsList';
 import SignalementDetail from './components/SignalementDetail';
 import './SignalementsPage.css';
@@ -89,6 +91,74 @@ export default function SignalementsPage() {
     }
   }, [load, selectedId]);
 
+  const [assigning, setAssigning] = useState(false);
+
+  const handleAutoAssign = useCallback(async () => {
+    setAssigning(true);
+    setError(null);
+    try {
+      const allTournees = await getTournees();
+      // Keep only active tournées (pending / in_progress) that have a zone with coordinates
+      const activeTournees = allTournees
+        .filter((t) => t.status === 'pending' || t.status === 'in_progress')
+        .filter((t) => {
+          // Zone coordinates are available from the zones already loaded
+          const zone = zones.find((z) => z.id === t.zone_id);
+          return zone && zone.latitude && zone.longitude;
+        })
+        .map((t) => {
+          const zone = zones.find((z) => z.id === t.zone_id);
+          return { id: t.id, latitude: zone.latitude, longitude: zone.longitude };
+        });
+
+      if (activeTournees.length === 0) {
+        setError('Aucune tournée active avec coordonnées disponible pour l\'auto-assignation');
+        return;
+      }
+
+      const result = await autoAssignSignalements(activeTournees);
+      const count = result?.data?.assigned || 0;
+      if (count > 0) {
+        await load();
+      }
+      setError(count > 0
+        ? null
+        : 'Aucun signalement ouvert non-assigné avec coordonnées trouvé');
+      if (count > 0) {
+        // Briefly show success via the error banner (reuse existing UI)
+        setError(`${count} signalement(s) auto-assigné(s) avec succès`);
+        setTimeout(() => setError(null), 4000);
+      }
+    } catch {
+      setError('Erreur lors de l\'auto-assignation des signalements');
+    } finally {
+      setAssigning(false);
+    }
+  }, [zones, load]);
+
+  const handleExportCsv = useCallback(() => {
+    const headers = [
+      { key: 'id',          label: 'ID' },
+      { key: 'type',        label: 'Type' },
+      { key: 'priority',    label: 'Priorité' },
+      { key: 'status',      label: 'Statut' },
+      { key: 'description', label: 'Description' },
+      { key: 'created_at',  label: 'Date création' },
+      { key: 'adresse',     label: 'Adresse' },
+    ];
+    const rows = filtered.map((s) => ({
+      id:          s.id ? s.id.slice(0, 8) : '',
+      type:        s.type || '',
+      priority:    s.priority || '',
+      status:      s.status || '',
+      description: s.description || '',
+      created_at:  s.created_at ? new Date(s.created_at).toLocaleDateString('fr-FR') : '',
+      adresse:     s.adresse || s.address || '',
+    }));
+    const today = new Date().toISOString().slice(0, 10);
+    exportToCsv(`signalements_${today}.csv`, headers, rows);
+  }, [filtered]);
+
   return (
     <div className="sig-page">
       {error && (
@@ -97,6 +167,22 @@ export default function SignalementsPage() {
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '0 12px 8px' }}>
+        <button
+          onClick={handleAutoAssign}
+          disabled={assigning}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: 'none', cursor: assigning ? 'wait' : 'pointer', fontSize: '0.82rem', fontWeight: 600, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6' }}
+        >
+          <Zap size={14} /> {assigning ? 'Assignation...' : 'Auto-assigner'}
+        </button>
+        <button
+          onClick={handleExportCsv}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 500 }}
+        >
+          <Download size={14} /> Exporter CSV
+        </button>
+      </div>
 
       <div className="sig-split">
         <SignalementsList

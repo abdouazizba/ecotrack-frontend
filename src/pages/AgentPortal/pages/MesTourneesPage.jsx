@@ -117,7 +117,7 @@ function CloseModal({ sigId, onConfirm, onCancel, submitting }) {
 }
 
 // ── Signalements d'une tournée ────────────────────────────────────────────────
-function TourneeSignalements({ tourneeId, onUpdate }) {
+function TourneeSignalements({ tourneeId, tourneeStatus, onUpdate }) {
   const [sigs, setSigs]         = useState([]);
   const [loading, setLoading]   = useState(true);
   const [closingId, setClosingId] = useState(null);
@@ -234,7 +234,7 @@ function TourneeSignalements({ tourneeId, onUpdate }) {
                 <Calendar size={10} /> {date}
               </span>
 
-              {s.status === 'pending' && (
+              {s.status === 'pending' && tourneeStatus === 'in_progress' && (
                 <button
                   onClick={() => handleTakeCharge(s.id)}
                   style={btn({ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' })}
@@ -300,9 +300,14 @@ export default function MesTourneesPage() {
     setUpdating(id);
     try {
       await updateTourneeStatus(id, status);
+      setError(null);
       await load();
-    } catch {
-      setError('Erreur lors de la mise à jour du statut');
+    } catch (err) {
+      const serverMsg = err.response?.data?.errors?.[0]?.msg
+        || err.response?.data?.message
+        || err.response?.data?.error
+        || 'Erreur lors de la mise à jour du statut';
+      setError(serverMsg);
     } finally {
       setUpdating(null);
     }
@@ -388,7 +393,7 @@ export default function MesTourneesPage() {
                       onClick={(e) => { e.stopPropagation(); handleStatusChange(t.id, 'in_progress'); }}
                       style={btn({ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', opacity: isUpdating ? 0.6 : 1 })}
                     >
-                      <AlertCircle size={12} /> Démarrer
+                      <AlertCircle size={12} /> Démarrer ma Tournée
                     </button>
                   )}
                   {t.status === 'in_progress' && (
@@ -417,7 +422,7 @@ export default function MesTourneesPage() {
                     <AlertTriangle size={13} color="#f59e0b" />
                     <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600 }}>Signalements à traiter</span>
                   </div>
-                  <TourneeSignalements tourneeId={t.id} onUpdate={load} />
+                  <TourneeSignalements tourneeId={t.id} tourneeStatus={t.status} onUpdate={load} />
                 </div>
               )}
             </div>
