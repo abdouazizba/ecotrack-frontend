@@ -43,9 +43,12 @@ export const transformUsersArrayToFrontend = (backendArray) => {
 // ============================================
 
 export const transformZoneToBackend = (frontendData) => {
+  const nom = frontendData.nom || frontendData.name || '';
+  const letterMatch = nom.match(/^Zone\s+([A-Z0-9]+)/i);
+  const autoCode = letterMatch ? `ZONE-${letterMatch[1].toUpperCase()}` : `ZONE-${Date.now()}`;
   const result = {
-    nom: frontendData.nom || frontendData.name,
-    code_zone: frontendData.code_zone || `ZONE-${Date.now()}`,
+    nom,
+    code_zone: frontendData.code_zone || autoCode,
     description: frontendData.description,
     population_estimee: frontendData.population_estimee || 0,
     latitude: parseFloat(frontendData.latitude) || 0,
@@ -247,6 +250,7 @@ export const transformSignalementToFrontend = (backendData) => {
     id_tournee:    backendData.id_tournee || null,
     created_at:    backendData.date_creation || backendData.date_signalement
                    || backendData.createdAt  || backendData.created_at || null,
+    updated_at:    backendData.updatedAt || backendData.updated_at || null,
   };
 };
 
@@ -267,6 +271,7 @@ const TOURNEE_STATUS_TO_FRONTEND = {
   'done':                 'done',
   'cancelled':            'cancelled',
 };
+
 
 const TOURNEE_STATUS_TO_BACKEND = {
   'pending':     'PLANIFIÉE',
@@ -308,6 +313,7 @@ export const transformTourneeToFrontend = (raw) => {
                     ? raw.signalements.map(transformSignalementToFrontend)
                     : [],
     created_at:   raw.created_at || raw.createdAt || null,
+    updated_at:   raw.updated_at || raw.updatedAt || null,
   };
 };
 

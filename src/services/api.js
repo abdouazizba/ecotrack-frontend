@@ -99,6 +99,14 @@ api.interceptors.response.use(
       });
     }
 
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.data?.retryAfter || 60;
+      console.error(`Rate limited — retry after ${retryAfter}s`);
+      useAuthStore.getState().logout();
+      window.location.href = '/?session=expired';
+      return Promise.reject(error);
+    }
+
     if (error.response) {
       console.error(`HTTP Error ${error.response.status}:`, error.response.statusText);
     } else if (error.request) {
@@ -526,14 +534,8 @@ export const removeSignalementFromTournee = async (_tourneeId, sigId) => {
 export const updateTourneeStatus = async (id, status) => {
   const STATUT = { pending: 'PLANIFIÉE', in_progress: 'EN_COURS', done: 'TERMINÉE', cancelled: 'ANNULÉE' };
   const statut = STATUT[status] || status;
-  try {
-    const response = await api.patch(`/tournees/${id}/statut`, { statut });
-    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
-  } catch (err) {
-    // Fallback: PUT classique
-    const response = await api.put(`/tournees/${id}`, { statut });
-    return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
-  }
+  const response = await api.patch(`/tournees/${id}/statut`, { statut });
+  return transformTourneeToFrontend(extractSingle(response.data, 'tournee'));
 };
 
 // ============================================
@@ -678,6 +680,11 @@ export const getContainerBreakdownByType = async () => {
 // ============================================
 // SIGNALEMENTS - Extras
 // ============================================
+
+export const autoAssignSignalements = async (tournees) => {
+  const response = await api.post('/signalements/auto-assign', { tournees });
+  return response.data;
+};
 
 export const getSignalementsOuverts = async () => {
   try {
@@ -863,84 +870,84 @@ export const getTourBreakdownByStatus = async () => {
 };
 
 // ============================================
-// COLLECTEURS
+// VEHICULES
 // ============================================
 
-export const getCollecteurs = async () => {
+export const getVehicules = async (filters = {}) => {
   try {
-    const response = await api.get('/collecteurs');
-    return extractArray(response.data, 'collecteurs');
+    const response = await api.get('/vehicules', { params: filters });
+    return extractArray(response.data, 'vehicules');
   } catch (err) {
-    console.error('Error fetching collecteurs:', err.message);
+    console.error('Error fetching vehicules:', err.message);
     throw err;
   }
 };
 
-export const getCollecteur = async (id) => {
+export const getVehicule = async (id) => {
   try {
-    const response = await api.get(`/collecteurs/${id}`);
-    return extractSingle(response.data, 'collecteur');
+    const response = await api.get(`/vehicules/${id}`);
+    return extractSingle(response.data, 'vehicule');
   } catch (err) {
-    console.error('Error fetching collecteur:', err.message);
+    console.error('Error fetching vehicule:', err.message);
     throw err;
   }
 };
 
-export const createCollecteur = async (data) => {
+export const createVehicule = async (data) => {
   try {
-    const response = await api.post('/collecteurs', data);
-    return extractSingle(response.data, 'collecteur');
+    const response = await api.post('/vehicules', data);
+    return extractSingle(response.data, 'vehicule');
   } catch (err) {
-    console.error('Error creating collecteur:', err.message);
+    console.error('Error creating vehicule:', err.message);
     throw err;
   }
 };
 
-export const updateCollecteur = async (id, data) => {
+export const updateVehicule = async (id, data) => {
   try {
-    const response = await api.put(`/collecteurs/${id}`, data);
-    return extractSingle(response.data, 'collecteur');
+    const response = await api.put(`/vehicules/${id}`, data);
+    return extractSingle(response.data, 'vehicule');
   } catch (err) {
-    console.error('Error updating collecteur:', err.message);
+    console.error('Error updating vehicule:', err.message);
     throw err;
   }
 };
 
-export const deleteCollecteur = async (id) => {
+export const deleteVehicule = async (id) => {
   try {
-    await api.delete(`/collecteurs/${id}`);
+    await api.delete(`/vehicules/${id}`);
   } catch (err) {
-    console.error('Error deleting collecteur:', err.message);
+    console.error('Error deleting vehicule:', err.message);
     throw err;
   }
 };
 
-export const getCollecteursByAgent = async (agentId) => {
+export const getVehiculesByAgent = async (agentId) => {
   try {
-    const response = await api.get(`/collecteurs/agent/${agentId}`);
-    return extractArray(response.data, 'collecteurs');
+    const response = await api.get(`/vehicules/agent/${agentId}`);
+    return extractArray(response.data, 'vehicules');
   } catch (err) {
-    console.error('Error fetching agent collecteurs:', err.message);
+    console.error('Error fetching agent vehicules:', err.message);
     throw err;
   }
 };
 
-export const getLowBatteryCollecteurs = async () => {
+export const getVehiculesMaintenanceDue = async () => {
   try {
-    const response = await api.get('/collecteurs/low-battery');
-    return extractArray(response.data, 'collecteurs');
+    const response = await api.get('/vehicules/maintenance-due');
+    return extractArray(response.data, 'vehicules');
   } catch (err) {
-    console.error('Error fetching low battery collecteurs:', err.message);
+    console.error('Error fetching vehicules maintenance due:', err.message);
     throw err;
   }
 };
 
-export const addCollecteurMaintenance = async (id, notes = '') => {
+export const addVehiculeMaintenance = async (id, notes = '') => {
   try {
-    const response = await api.post(`/collecteurs/${id}/maintenance`, notes ? { notes } : {});
+    const response = await api.post(`/vehicules/${id}/maintenance`, notes ? { notes } : {});
     return response.data;
   } catch (err) {
-    console.error('Error adding collecteur maintenance:', err.message);
+    console.error('Error adding vehicule maintenance:', err.message);
     throw err;
   }
 };
