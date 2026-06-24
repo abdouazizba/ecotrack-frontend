@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Package, AlertCircle, Menu, X, Truck, Activity,
-  LogOut, Home, ChevronDown, Route, Users, Map, Cpu,
+  LogOut, Home, ChevronDown, Route, Users, Map, Cpu, History, MapPin,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
@@ -31,9 +31,9 @@ export default function Sidebar() {
         });
       } catch {}
     };
-    fetchBadges();
-    const interval = setInterval(fetchBadges, 60000);
-    return () => clearInterval(interval);
+    const delay = setTimeout(fetchBadges, 3000);
+    const interval = setInterval(fetchBadges, 180000);
+    return () => { clearTimeout(delay); clearInterval(interval); };
   }, []);
 
   const MENU_GROUPS = [
@@ -41,6 +41,7 @@ export default function Sidebar() {
       label: 'Général',
       items: [
         { icon: Home, label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
+        { icon: MapPin, label: 'Carte', id: 'carte', path: '/carte' },
       ],
     },
     {
@@ -61,15 +62,15 @@ export default function Sidebar() {
           path: '/signalements',
           badge: badges.signals,
         },
-        { icon: Cpu, label: 'Capteurs', id: 'capteurs', path: '/capteurs', badge: badges.capteurs },
-        { icon: Truck, label: 'Collecteurs', id: 'collecteurs', path: '/collecteurs' },
-        { icon: Activity, label: 'Mesures IoT', id: 'mesures', path: '/mesures' },
+        { icon: Cpu, label: 'Capteurs & IoT', id: 'capteurs', path: '/capteurs', badge: badges.capteurs },
+        { icon: Truck, label: 'Véhicules', id: 'vehicules', path: '/vehicules' },
       ],
     },
     {
       label: 'Administration',
       items: [
         { icon: Users, label: 'Utilisateurs', id: 'users', path: '/users' },
+        { icon: History, label: 'Historique', id: 'historique', path: '/historique' },
       ],
     },
   ];

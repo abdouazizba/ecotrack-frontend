@@ -10,9 +10,12 @@ import UsersPage from './pages/ManagementPages/UsersPage';
 import TourneesPage from './pages/ManagementPages/TourneesPage';
 import SignalementsPage from './pages/ManagementPages/SignalementsPage';
 import CapteurPage from './pages/ManagementPages/CapteurPage';
-import CollecteursPage from './pages/ManagementPages/CollecteursPage/CollecteursPage';
-import MesuresPage from './pages/ManagementPages/MesuresPage/MesuresPage';
+import VehiculesPage from './pages/ManagementPages/CollecteursPage/CollecteursPage';
+import HistoriquePage from './pages/HistoriquePage/HistoriquePage';
+import CartePage from './pages/CartePage/CartePage';
+
 import ProfilePage from './pages/ProfilePage';
+import NotificationsPage from './pages/NotificationsPage/NotificationsPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Sidebar from './components/navigation/Sidebar';
 import Navbar from './components/navigation/Navbar';
@@ -28,10 +31,11 @@ import ProfilPage from './pages/CitoyenPortal/pages/ProfilPage';
 import AgentPortal, {
   AgentDashboardPage,
   MesTourneesPage,
-  ConteneurPage,
+  MaTourneePage,
 } from './pages/AgentPortal';
 
 import useAuthStore from './store/authStore';
+import useThemeStore from './store/themeStore';
 import './App.css';
 
 const ADMIN_ROLES  = ['admin', 'super_admin'];
@@ -74,6 +78,11 @@ function CitoyenLayout() {
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
+  const theme = useThemeStore((state) => state.theme);
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const defaultRedirect = !isAuthenticated
     ? '/login'
@@ -104,7 +113,8 @@ function App() {
           <Route element={<AgentPortal />}>
             <Route path="/agent" element={<AgentDashboardPage />} />
             <Route path="/agent/tournees" element={<MesTourneesPage />} />
-            <Route path="/agent/conteneurs" element={<ConteneurPage />} />
+            <Route path="/agent/ma-tournee" element={<MaTourneePage />} />
+            <Route path="/agent/profil" element={<ProfilePage />} />
           </Route>
         </Route>
 
@@ -117,10 +127,12 @@ function App() {
           <Route path="/tournees" element={<TourneesPage />} />
           <Route path="/signalements" element={<SignalementsPage />} />
           <Route path="/capteurs" element={<CapteurPage />} />
-          <Route path="/collecteurs" element={<CollecteursPage />} />
-          <Route path="/mesures" element={<MesuresPage />} />
+          <Route path="/vehicules" element={<VehiculesPage />} />
+          <Route path="/historique" element={<HistoriquePage />} />
+          <Route path="/carte" element={<CartePage />} />
           <Route path="/espace-citoyen" element={<Navigate to="/citoyen" replace />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
         </Route>
 
         <Route path="/" element={<Navigate to={defaultRedirect} replace />} />
