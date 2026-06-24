@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, AlertTriangle, CheckCircle, List, Map as MapIcon } from 'lucide-react';
+import { X, CheckCircle, List, Map as MapIcon } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';

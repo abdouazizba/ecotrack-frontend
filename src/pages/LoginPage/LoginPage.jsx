@@ -40,7 +40,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { loginWithTokens, login, updateUserProfile } = useAuthStore();
+  const { loginWithTokens, updateUserProfile } = useAuthStore();
 
   useEffect(() => {
     if (searchParams.get('session') === 'expired') {

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Plus, Trash2, Clock, CheckCircle, MapPin, Calendar, XCircle,
-  UserCheck, Users, AlertTriangle, Package, X, Timer, Edit2,
+  UserCheck, AlertTriangle, Package, X, Timer, Edit2,
 } from 'lucide-react';
 import { TOURNEE_STATUS, TYPE_LABELS, PRIORITY_META } from '../utils/constants';
 

@@ -13,7 +13,7 @@ export default function StatsSection({ containers, signalements, zones, agents, 
             ? Math.round(validFill.reduce((s, c) => s + (c.fillLevel || 0), 0) / validFill.length)
             : 0;
         })();
-    const criticalContainers = dashboardStats.criticalContainers
+    const criticalCount = dashboardStats.criticalContainers
       ?? containers.filter((c) => (c.fillLevel || 0) > 80).length;
     const statusBreakdown = dashboardStats.containerBreakdown?.status || {};
     const maintenanceContainers = (statusBreakdown.maintenance ?? 0) + (statusBreakdown.retire ?? 0)
@@ -44,7 +44,7 @@ export default function StatsSection({ containers, signalements, zones, agents, 
     const needsServiceCount = criticalContainers.length;
 
     return {
-      totalContainers, avgFillRate, criticalContainers: criticalContainers.length || dashboardStats.criticalContainers || containers.filter((c) => (c.fillLevel || 0) > 80).length, maintenanceContainers,
+      totalContainers, avgFillRate, criticalContainers: criticalCount, maintenanceContainers,
       totalZones, activeZones,
       pendingSig, inProgressSig, closedSig, tauxResolution,
       activeAgents,

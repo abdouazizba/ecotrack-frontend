@@ -38,7 +38,7 @@ function isWithin24h(dateStr) {
 export default function useNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [readIds, setReadIds] = useState(getReadIds);
+  const [, setReadIds] = useState(getReadIds);
   const intervalRef = useRef(null);
 
   const buildNotifications = useCallback(async () => {

@@ -6,7 +6,7 @@ import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import {
   Navigation, ArrowRight, CheckCircle, Image, AlertTriangle,
-  Route, Clock, RefreshCw,
+  Route, RefreshCw,
 } from 'lucide-react';
 import {
   getTourneesByAgent,

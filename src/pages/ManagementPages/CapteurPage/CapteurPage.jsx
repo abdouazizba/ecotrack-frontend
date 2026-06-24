@@ -86,7 +86,7 @@ export default function CapteurPage() {
     if (tab !== 'monitoring') return;
     const iv = setInterval(() => setCountdown(c => Math.max(0, c - 1)), 1000);
     return () => clearInterval(iv);
-  }, [tab, countdown === REFRESH_INTERVAL / 1000]);
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (location.state?.selectedCapteurId) {
@@ -98,8 +98,8 @@ export default function CapteurPage() {
   const contMap = useMemo(() => { const m = {}; containers.forEach(c => { m[c.id] = c; }); return m; }, [containers]);
   const zoneMap = useMemo(() => { const m = {}; zones.forEach(z => { m[z.id] = z.nom || z.name; }); return m; }, [zones]);
 
-  const getVal = (cap) => cap.valeur_actuelle ?? cap.derniere_mesure?.taux_remplissage ?? null;
-  const isCritical = (cap) => cap.type === 'REMPLISSAGE' && getVal(cap) != null && getVal(cap) > 80;
+  const getVal = useCallback((cap) => cap.valeur_actuelle ?? cap.derniere_mesure?.taux_remplissage ?? null, []);
+  const isCritical = useCallback((cap) => cap.type === 'REMPLISSAGE' && getVal(cap) != null && getVal(cap) > 80, [getVal]);
 
   const filtered = useMemo(() => {
     let list = capteurs;
@@ -112,7 +112,7 @@ export default function CapteurPage() {
       list = list.filter(c => (c.code_capteur || '').toLowerCase().includes(q) || (contMap[c.id_conteneur]?.code_conteneur || '').toLowerCase().includes(q));
     }
     return list;
-  }, [capteurs, filter, typeFilter, zoneFilter, criticalOnly, search, contMap]);
+  }, [capteurs, filter, typeFilter, zoneFilter, criticalOnly, search, contMap, isCritical]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -125,7 +125,7 @@ export default function CapteurPage() {
     active: capteurs.filter(c => c.statut === 'ACTIF').length,
     critical: capteurs.filter(c => isCritical(c)).length,
     lowBatt: capteurs.filter(c => c.batterie != null && c.batterie < 20).length,
-  }), [capteurs]);
+  }), [capteurs, isCritical]);
 
   const handleFormSubmit = useCallback(async (data) => {
     try {

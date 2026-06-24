@@ -3,7 +3,7 @@ import { Download } from 'lucide-react';
 import {
   getTournees, createTournee, updateTournee, deleteTournee,
   updateTourneeStatus, addSignalementToTournee, removeSignalementFromTournee,
-  getSignalementsByTournee, assignAgentToTournee, removeAgentFromTournee,
+  getSignalementsByTournee, assignAgentToTournee,
   getSignalements, getAgents, getZones, getContainers,
 } from '../../../services/api';
 import { exportToCsv } from '../../../utils/exportCsv';
@@ -197,20 +197,7 @@ export default function TourneesPage() {
     }
   }, [loadTournees]);
 
-  const handleTourneeAgentChange = useCallback(async (agentId) => {
-    if (!selectedId) return;
-    try {
-      if (selectedTournee?.agent_id) {
-        await removeAgentFromTournee(selectedId, selectedTournee.agent_id).catch(() => {});
-      }
-      if (agentId) {
-        await assignAgentToTournee(selectedId, agentId, 'COLLECTEUR');
-      }
-      await loadTournees();
-    } catch {
-      setError("Erreur lors de l'assignation de l'agent");
-    }
-  }, [selectedId, selectedTournee, loadTournees]);
+
 
   const handleAddSignalements = useCallback(async (pickedIds) => {
     if (!selectedId) return;

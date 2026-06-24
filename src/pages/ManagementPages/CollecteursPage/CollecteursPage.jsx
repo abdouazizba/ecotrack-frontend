@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Truck, Plus, Edit2, Trash2, Gauge, Wrench, Search, Calendar,
-  ChevronLeft, ChevronRight, X, MapPin, User, Filter,
+  ChevronLeft, ChevronRight, X, User,
 } from 'lucide-react';
 import { getVehicules, createVehicule, updateVehicule, deleteVehicule, getAgents } from '../../../services/api';
 

@@ -3,7 +3,7 @@ import {
   History, Search, ChevronLeft, ChevronRight, X,
   AlertTriangle, Truck, Users, Package, Calendar,
   Clock, MapPin, FileText, CheckCircle, XCircle,
-  Loader, Filter, ArrowUpRight, PlayCircle, Ban,
+  Loader, Filter,
 } from 'lucide-react';
 import {
   getSignalements, getTournees, getContainers, getCapteurs, getUsers,

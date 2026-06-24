@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Package, AlertCircle, Menu, X, Truck, Activity,
+  Package, AlertCircle, Menu, X, Truck,
   LogOut, Home, ChevronDown, Route, Users, Map, Cpu, History, MapPin,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
