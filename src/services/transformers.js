@@ -18,6 +18,8 @@ export const transformUserToFrontend = (backendData) => {
     status: backendData.status || backendData.statut || 'active',
     is_active: backendData.is_active,
     created_at: backendData.created_at || backendData.createdAt,
+    score_reputation: backendData.score_reputation ?? backendData.citoyen?.score_reputation ?? null,
+    nombre_signalements: backendData.nombre_signalements ?? backendData.citoyen?.nombre_signalements ?? null,
   };
 };
 
@@ -300,8 +302,12 @@ export const transformTourneeToFrontend = (raw) => {
                       ? `${agent.prenom || agent.firstName} ${agent.nom || agent.lastName}`
                       : null)
                   || null,
-    // liste complète des agents avec leur rôle (id_agent + role)
-    agents:       agentsArr.map((a) => ({ id: a.id_agent || a.id, role: a.role || 'COLLECTEUR' })),
+    agents:       agentsArr.map((a) => ({
+      id: a.id_agent || a.id,
+      role: a.role || 'COLLECTEUR',
+      nom: a.nom || a.lastName || '',
+      prenom: a.prenom || a.firstName || '',
+    })),
     date_prevue:  raw.date_prevue || raw.date || raw.datePrevue || null,
     status:       TOURNEE_STATUS_TO_FRONTEND[raw.statut || raw.status] || 'pending',
     heure_debut:          raw.heure_debut || null,

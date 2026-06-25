@@ -436,6 +436,22 @@ export const changeUserRole = async (id, role) => {
   return response.data;
 };
 
+export const getCitoyens = async (page = 1, limit = 20, sort = 'score', search = '') => {
+  try {
+    const response = await api.get('/users/citoyens', { params: { page, limit, sort, search } });
+    const data = response.data;
+    return {
+      citoyens: transformUsersArrayToFrontend(data.users || data.data || []),
+      total: data.total || 0,
+      page: data.page || page,
+      totalPages: data.totalPages || 1,
+    };
+  } catch (err) {
+    console.error('Error fetching citoyens:', err.message);
+    throw err;
+  }
+};
+
 export const getAgents = async () => {
   const response = await api.get('/users', { params: { role: 'agent', limit: 500 } });
   return transformUsersArrayToFrontend(extractArray(response.data, 'users'));
