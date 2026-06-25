@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus, Trash2, Clock, CheckCircle, MapPin, Calendar, XCircle,
-  UserCheck, AlertTriangle, Package, X, Timer, Edit2,
+  UserCheck, AlertTriangle, Package, X, Timer, Edit2, Truck, ChevronDown,
 } from 'lucide-react';
 import { TOURNEE_STATUS, TYPE_LABELS, PRIORITY_META } from '../utils/constants';
+import { getVehiculesByAgent } from '../../../../services/api';
 
 function parseDuration(debut, fin) {
   if (!debut || !fin) return null;
@@ -16,6 +17,116 @@ function parseDuration(debut, fin) {
   const h = Math.floor(diff / 3600);
   const m = Math.floor((diff % 3600) / 60);
   return h > 0 ? `${h}h ${m}min` : `${m}min`;
+}
+
+const STATUS_OPTIONS = [
+  { value: 'pending',     label: 'Planifiée',  color: '#f59e0b', Icon: Clock },
+  { value: 'in_progress', label: 'En cours',   color: '#3b82f6', Icon: Clock },
+  { value: 'done',        label: 'Terminée',   color: '#10b981', Icon: CheckCircle },
+  { value: 'cancelled',   label: 'Annulée',    color: '#6b7280', Icon: XCircle },
+];
+
+function StatusDropdown({ current, onChange }) {
+  const [open, setOpen] = useState(false);
+  const currentOpt = STATUS_OPTIONS.find((o) => o.value === current) || STATUS_OPTIONS[0];
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="tr-btn-status"
+        style={{ background: currentOpt.color + '18', color: currentOpt.color, gap: 6 }}
+      >
+        <currentOpt.Icon size={13} />
+        {currentOpt.label}
+        <ChevronDown size={12} style={{ marginLeft: 2, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '110%', left: 0, zIndex: 50,
+          background: '#1e2433', border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 8, overflow: 'hidden', minWidth: 160,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        }}>
+          {STATUS_OPTIONS.filter((o) => o.value !== current).map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => {
+                setOpen(false);
+                if (opt.value === 'cancelled') {
+                  if (window.confirm('Annuler cette tournée ?')) onChange(opt.value);
+                } else {
+                  onChange(opt.value);
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                padding: '9px 14px', border: 'none', background: 'transparent',
+                color: opt.color, fontSize: '0.82rem', fontWeight: 500,
+                cursor: 'pointer', textAlign: 'left',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              <opt.Icon size={13} /> {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VehiculeInfo({ tournee, agents }) {
+  const [vehicule, setVehicule] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const conducteur = (tournee.agents || []).find((a) => a.role === 'CONDUCTEUR');
+  const conducteurId = conducteur?.id;
+
+  useEffect(() => {
+    if (!conducteurId) { setVehicule(null); return; }
+    let cancelled = false;
+    setLoading(true);
+    getVehiculesByAgent(conducteurId)
+      .then((list) => { if (!cancelled) setVehicule(Array.isArray(list) && list.length > 0 ? list[0] : null); })
+      .catch(() => { if (!cancelled) setVehicule(null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [conducteurId]);
+
+  const conducteurData = conducteurId ? agents.find((a) => String(a.id) === String(conducteurId)) : null;
+  const conducteurName = conducteurData ? `${conducteurData.firstName} ${conducteurData.lastName}` : null;
+
+  if (loading) return <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '8px 0' }}>Chargement véhicule…</p>;
+  if (!vehicule) return null;
+
+  return (
+    <div className="tr-team-section" style={{ marginTop: 0 }}>
+      <div className="tras-label">
+        <Truck size={16} />
+        <span>Véhicule assigné</span>
+      </div>
+      <div className="tr-soutien-chips" style={{ marginTop: 6 }}>
+        <span className="tr-soutien-chip" style={{ background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.25)' }}>
+          <Truck size={12} />
+          {vehicule.immatriculation}
+          {vehicule.marque && <span style={{ opacity: 0.7, marginLeft: 4 }}>— {[vehicule.marque, vehicule.modele].filter(Boolean).join(' ')}</span>}
+        </span>
+        {vehicule.type_vehicule && (
+          <span className="tr-soutien-chip" style={{ fontSize: '0.72rem' }}>
+            {vehicule.type_vehicule === 'BENNE' ? 'Benne' : vehicule.type_vehicule === 'COMPACTEUR' ? 'Compacteur' : vehicule.type_vehicule === 'UTILITAIRE' ? 'Utilitaire' : vehicule.type_vehicule === 'CAMION_GRUE' ? 'Camion grue' : vehicule.type_vehicule}
+            {vehicule.capacite_tonnes ? ` · ${vehicule.capacite_tonnes}t` : ''}
+          </span>
+        )}
+        {conducteurName && (
+          <span className="tr-soutien-chip" style={{ fontSize: '0.72rem', opacity: 0.7 }}>
+            Conducteur : {conducteurName}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function TourneeDetail({
@@ -71,27 +182,11 @@ export default function TourneeDetail({
           </div>
         </div>
         <div className="trh-actions">
-          {tournee.status === 'pending' && (
-            <>
-              <button className="tr-btn-status" onClick={() => onStatusChange(tournee.id, 'in_progress')}>
-                <Clock size={14} /> Démarrer
-              </button>
-              <button className="tr-btn-status" style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }} onClick={() => { if (window.confirm('Annuler cette tournée ?')) onStatusChange(tournee.id, 'cancelled'); }}>
-                <XCircle size={14} /> Annuler
-              </button>
-            </>
-          )}
-          {tournee.status === 'in_progress' && (
-            <>
-              <button className="tr-btn-status tr-btn-done" onClick={() => onStatusChange(tournee.id, 'done')}>
-                <CheckCircle size={14} /> Terminer
-              </button>
-              <button className="tr-btn-status" style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }} onClick={() => { if (window.confirm('Annuler cette tournée ?')) onStatusChange(tournee.id, 'cancelled'); }}>
-                <XCircle size={14} /> Annuler
-              </button>
-            </>
-          )}
-          {onEditClick && (tournee.status === 'pending' || tournee.status === 'in_progress') && (
+          <StatusDropdown
+            current={tournee.status}
+            onChange={(newStatus) => onStatusChange(tournee.id, newStatus)}
+          />
+          {onEditClick && (
             <button className="tr-btn-edit" onClick={() => onEditClick(tournee)} title="Modifier la tournée">
               <Edit2 size={15} />
             </button>
@@ -143,6 +238,9 @@ export default function TourneeDetail({
           );
         })()}
       </div>
+
+      {/* véhicule */}
+      <VehiculeInfo tournee={tournee} agents={agents} />
 
       {/* suivi temps */}
       {(tournee.heure_debut || tournee.heure_fin) && (

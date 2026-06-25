@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertTriangle, MapPin, UserCheck, Users, Clock } from 'lucide-react';
+import { X, AlertTriangle, MapPin, UserCheck, Users, Clock, Truck } from 'lucide-react';
 import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
 import ZoneMapPicker from './ZoneMapPicker';
 
@@ -10,11 +10,15 @@ const genTag = () => {
 
 const EMPTY_FORM = {
   titre: '', selected_zone_ids: [], date_prevue: '', heure_debut: '',
-  agent_id: '', support_agent_ids: [],
+  agent_id: '', support_agent_ids: [], vehicule_id: '',
+};
+
+const TYPE_VEHICULE_LABELS = {
+  BENNE: 'Benne', COMPACTEUR: 'Compacteur', UTILITAIRE: 'Utilitaire', CAMION_GRUE: 'Camion grue',
 };
 
 export default function CreateTourneeModal({
-  show, zones, agents, tournees = [], zoneSigCounts = {}, initialData, onClose, onSubmit,
+  show, zones, agents, vehicules = [], tournees = [], zoneSigCounts = {}, initialData, onClose, onSubmit,
 }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const isEdit = !!initialData;
@@ -29,7 +33,7 @@ export default function CreateTourneeModal({
               date_prevue:       initialData.date_prevue || '',
               heure_debut:       initialData.heure_debut || '',
               agent_id:          initialData.agent_id    || '',
-              // pour l'edit, pre-remplir les agents en soutien depuis initialData.agents
+              vehicule_id:       initialData.vehicule_id || '',
               support_agent_ids: (initialData.agents || [])
                 .filter((a) => a.role !== 'CONDUCTEUR')
                 .map((a) => a.id),
@@ -214,6 +218,30 @@ export default function CreateTourneeModal({
                     );
                   })}
                 </div>
+              </div>
+            )}
+
+            {/* Véhicule */}
+            {vehicules.length > 0 && (
+              <div className="t-field">
+                <label>
+                  <Truck size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                  Véhicule
+                </label>
+                <select
+                  value={form.vehicule_id}
+                  onChange={(e) => setForm({ ...form, vehicule_id: e.target.value })}
+                >
+                  <option value="">— Non assigné —</option>
+                  {vehicules
+                    .filter((v) => v.statut === 'ACTIF' || v.id === form.vehicule_id)
+                    .map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.immatriculation} — {[v.marque, v.modele].filter(Boolean).join(' ')}
+                        {v.type_vehicule ? ` (${TYPE_VEHICULE_LABELS[v.type_vehicule] || v.type_vehicule})` : ''}
+                      </option>
+                    ))}
+                </select>
               </div>
             )}
 

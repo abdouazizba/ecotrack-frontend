@@ -4,7 +4,7 @@ import {
   getTournees, createTournee, updateTournee, deleteTournee,
   updateTourneeStatus, addSignalementToTournee, removeSignalementFromTournee,
   getSignalementsByTournee, assignAgentToTournee,
-  getSignalements, getAgents, getZones, getContainers,
+  getSignalements, getAgents, getZones, getContainers, getVehicules,
 } from '../../../services/api';
 import { exportToCsv } from '../../../utils/exportCsv';
 import {
@@ -24,6 +24,7 @@ export default function TourneesPage() {
   const [zones, setZones]                     = useState([]);
   const [allSignalements, setAllSignalements] = useState([]);
   const [containers, setContainers]           = useState([]);
+  const [vehicules, setVehicules]             = useState([]);
   const [loading, setLoading]                 = useState(true);
   const [error, setError]                     = useState(null);
 
@@ -52,7 +53,8 @@ export default function TourneesPage() {
       getAgents(),
       getZones(),
       getContainers(),
-    ]).then(([, sRes, aRes, zRes, cRes]) => {
+      getVehicules(),
+    ]).then(([, sRes, aRes, zRes, cRes, vRes]) => {
       if (sRes.status === 'fulfilled')
         setAllSignalements(
           (sRes.value || []).filter((s) => s.status === 'pending' && !s.id_tournee)
@@ -60,6 +62,7 @@ export default function TourneesPage() {
       if (aRes.status === 'fulfilled') setAgents(aRes.value || []);
       if (zRes.status === 'fulfilled') setZones(zRes.value  || []);
       if (cRes.status === 'fulfilled') setContainers(cRes.value || []);
+      if (vRes.status === 'fulfilled') setVehicules(vRes.value || []);
       setLoading(false);
     });
   }, [loadTournees]);
@@ -290,6 +293,7 @@ export default function TourneesPage() {
         show={showCreate}
         zones={zones}
         agents={agents}
+        vehicules={vehicules}
         tournees={tournees}
         zoneSigCounts={zoneSigCounts}
         onClose={() => setShowCreate(false)}
@@ -300,6 +304,7 @@ export default function TourneesPage() {
         show={!!editTarget}
         zones={zones}
         agents={agents}
+        vehicules={vehicules}
         tournees={tournees}
         initialData={editTarget}
         onClose={() => setEditTarget(null)}
