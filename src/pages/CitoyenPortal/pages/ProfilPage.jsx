@@ -3,6 +3,7 @@ import { getSignalementsCitoyen, getCitoyens, updateUser } from '../../../servic
 import useAuthStore from '../../../store/authStore';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LogoutModal from '../../../components/common/LogoutModal';
 
 // ── Points system ─────────────────────────────────────────────
 const calcPoints = (sigs) => {
@@ -84,6 +85,7 @@ export default function ProfilPage() {
   const [editing, setEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
+  const [showLogout, setShowLogout] = useState(false);
 
   const load = useCallback(async () => {
     if (!user?.id) return;
@@ -98,11 +100,13 @@ export default function ProfilPage() {
 
       if (citoyensResult.status === 'fulfilled') {
         const top = citoyensResult.value.citoyens || [];
+        const myPts = calcPoints(mySigs);
         const board = top.map((c) => ({
           id: c.id,
           name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.email,
-          pts: c.score_reputation || 0,
+          pts: c.id === user.id ? myPts : (c.score_reputation || 0),
         }));
+        board.sort((a, b) => b.pts - a.pts);
         setLeaderboard(board);
       }
     } finally {
@@ -128,7 +132,7 @@ export default function ProfilPage() {
     setEditing(false);
   };
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const confirmLogout = () => { setShowLogout(false); logout(); navigate('/login'); };
 
   return (
     <div className="pp-page">
@@ -213,10 +217,16 @@ export default function ProfilPage() {
       </div>
 
       {/* Logout */}
-      <button className="pp-logout cp-btn-ghost" onClick={handleLogout}>
+      <button className="pp-logout cp-btn-ghost" onClick={() => setShowLogout(true)}>
         <LogOut size={16} />
         Se déconnecter
       </button>
+
+      <LogoutModal
+        isOpen={showLogout}
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogout(false)}
+      />
 
       <style>{`
         .pp-page { padding: 1.5rem 1.5rem 2rem; max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem; }
