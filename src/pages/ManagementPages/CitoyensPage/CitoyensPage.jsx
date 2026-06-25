@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Users, Search, Trophy, Star, Award,
+  Users, Search, Trophy, Star,
   ChevronLeft, ChevronRight, Filter, AlertCircle,
 } from 'lucide-react';
 import { getCitoyens } from '../../../services/api';
@@ -173,7 +173,6 @@ const s = {
   '@media(max-width:900px)': { rightPanel: { display: 'none' } },
 };
 
-const MEDAL = ['gold', 'silver', 'bronze'];
 const medalEmoji = (i) => i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
 
 function formatDate(d) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users, User,
+  Calendar, ChevronLeft, ChevronRight, Clock, MapPin, User,
 } from 'lucide-react';
 import { getTourneesByAgent } from '../../../services/api';
 import useAuthStore from '../../../store/authStore';
