@@ -10,6 +10,7 @@ import UsersPage from './pages/ManagementPages/UsersPage';
 import TourneesPage from './pages/ManagementPages/TourneesPage';
 import SignalementsPage from './pages/ManagementPages/SignalementsPage';
 import CapteurPage from './pages/ManagementPages/CapteurPage';
+import CitoyensPage from './pages/ManagementPages/CitoyensPage/CitoyensPage';
 import VehiculesPage from './pages/ManagementPages/CollecteursPage/CollecteursPage';
 import HistoriquePage from './pages/HistoriquePage/HistoriquePage';
 import CartePage from './pages/CartePage/CartePage';
@@ -32,6 +33,7 @@ import AgentPortal, {
   AgentDashboardPage,
   MesTourneesPage,
   MaTourneePage,
+  CalendrierAgentPage,
 } from './pages/AgentPortal';
 
 import useAuthStore from './store/authStore';
@@ -113,6 +115,7 @@ function App() {
           <Route element={<AgentPortal />}>
             <Route path="/agent" element={<AgentDashboardPage />} />
             <Route path="/agent/tournees" element={<MesTourneesPage />} />
+            <Route path="/agent/calendrier" element={<CalendrierAgentPage />} />
             <Route path="/agent/ma-tournee" element={<MaTourneePage />} />
             <Route path="/agent/profil" element={<ProfilePage />} />
           </Route>
@@ -127,6 +130,7 @@ function App() {
           <Route path="/tournees" element={<TourneesPage />} />
           <Route path="/signalements" element={<SignalementsPage />} />
           <Route path="/capteurs" element={<CapteurPage />} />
+          <Route path="/citoyens" element={<CitoyensPage />} />
           <Route path="/vehicules" element={<VehiculesPage />} />
           <Route path="/historique" element={<HistoriquePage />} />
           <Route path="/carte" element={<CartePage />} />
