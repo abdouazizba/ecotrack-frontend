@@ -1,0 +1,456 @@
+/* ============================================================
+   REGISTER STEPPER — Clean White + Light Green Theme
+   ============================================================ */
+
+.rs-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 40%, #ecfdf5 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.rs-page::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.rs-page::after {
+  content: '';
+  position: absolute;
+  bottom: -150px;
+  left: -150px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(5,150,105,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Card ────────────────────────────────────────────── */
+
+.rs-card {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2.25rem 2.5rem 2.5rem;
+  width: 440px;
+  max-width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(16, 185, 129, 0.08);
+}
+
+.rs-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 1.25rem;
+}
+
+.rs-back-btn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.rs-logo {
+  display: block;
+  margin: 0 auto 0.75rem;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.rs-title {
+  text-align: center;
+  color: #0f172a;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.rs-subtitle {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: 0 0 1.5rem;
+}
+
+/* ── Progress Bar ────────────────────────────────────── */
+
+.rs-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 2rem;
+}
+
+.rs-step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.rs-step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid #d1d5db;
+  background: #ffffff;
+  color: #9ca3af;
+}
+
+.rs-step-circle.active {
+  border-color: #10b981;
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+.rs-step-circle.done {
+  border-color: #10b981;
+  background: #10b981;
+  color: #ffffff;
+}
+
+.rs-step-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  transition: color 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rs-step-label.active,
+.rs-step-label.done {
+  color: #10b981;
+}
+
+.rs-step-line {
+  width: 60px;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 0 -2px;
+  margin-bottom: 22px;
+  transition: background 0.35s;
+}
+
+.rs-step-line.done {
+  background: #10b981;
+}
+
+/* ── Step Content ────────────────────────────────────── */
+
+.rs-step-wrapper {
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+}
+
+.rs-step-content {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.rs-step-heading {
+  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rs-step-heading svg {
+  color: #10b981;
+}
+
+/* ── Form Fields ─────────────────────────────────────── */
+
+.rs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.rs-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.rs-field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.02em;
+}
+
+.rs-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.rs-input-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.rs-input-wrap:focus-within .rs-input-icon {
+  color: #10b981;
+}
+
+.rs-field input {
+  width: 100%;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  color: #0f172a;
+  font-size: 0.92rem;
+  padding: 12px 14px 12px 40px;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.rs-field input::placeholder {
+  color: #94a3b8;
+}
+
+.rs-field input:focus {
+  border-color: #10b981;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.rs-pwd-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  transition: color 0.15s;
+}
+
+.rs-pwd-toggle:hover {
+  color: #64748b;
+}
+
+/* ── Password Strength ───────────────────────────────── */
+
+.rs-pwd-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.rs-pwd-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.rs-pwd-bar {
+  height: 4px;
+  border-radius: 2px;
+  flex: 1;
+  background: #e5e7eb;
+  transition: background 0.3s;
+}
+
+.rs-pwd-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  min-width: 42px;
+  text-align: right;
+}
+
+.rs-pwd-hint {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  margin: 4px 0 0;
+}
+
+.rs-pwd-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin: 2px 0 0;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+
+.rs-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 1.25rem;
+}
+
+.rs-btn-back {
+  flex: 0 0 auto;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.rs-btn-back:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.rs-btn-next {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.rs-btn-next:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+}
+
+.rs-btn-next:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Error ────────────────────────────────────────────── */
+
+.rs-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  font-size: 0.82rem;
+  padding: 10px 14px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* ── Link ─────────────────────────────────────────────── */
+
+.rs-link {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.82rem;
+  margin-top: 1.25rem;
+}
+
+.rs-link button {
+  background: none;
+  border: none;
+  color: #10b981;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rs-link button:hover {
+  color: #059669;
+}
+
+/* ── Spinner ──────────────────────────────────────────── */
+
+.rs-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: rs-spin 0.6s linear infinite;
+}
+
+@keyframes rs-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ───────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .rs-card {
+    padding: 1.5rem 1.25rem 1.75rem;
+    border-radius: 20px;
+  }
+
+  .rs-row {
+    grid-template-columns: 1fr;
+  }
+
+  .rs-step-label {
+    display: none;
+  }
+
+  .rs-step-line {
+    width: 40px;
+    margin-bottom: 6px;
+  }
+}

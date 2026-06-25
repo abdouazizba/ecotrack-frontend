@@ -8,6 +8,7 @@ const useAuthStore = create(
       user: null,
       token: Cookies.get('authToken') || null,
       isAuthenticated: !!Cookies.get('authToken'),
+      profileCompleted: false,
       loading: false,
       error: null,
 
@@ -64,15 +65,16 @@ const useAuthStore = create(
       logout: () => {
         Cookies.remove('authToken');
         Cookies.remove('refreshToken');
-        set({ user: null, token: null, isAuthenticated: false });
+        set({ user: null, token: null, isAuthenticated: false, profileCompleted: false });
       },
 
+      setProfileCompleted: (val) => set({ profileCompleted: val }),
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
     }),
     {
       name: 'auth-store',
-      partialize: (state) => ({ user: state.user, token: state.token }),
+      partialize: (state) => ({ user: state.user, token: state.token, profileCompleted: state.profileCompleted }),
     }
   )
 );

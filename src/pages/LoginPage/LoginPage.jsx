@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import { loginUser, registerPublic, getCurrentUserProfile } from '../../services/api';
 import LoginForm from './components/LoginForm';
+import RegisterStepper from './components/RegisterStepper';
 import WelcomeSection from './components/WelcomeSection';
 import BackgroundDecoration from './components/BackgroundDecoration';
 import FloatingIcons from './components/FloatingIcons';
@@ -142,77 +142,18 @@ export default function LoginPage() {
   // ── STEP citoyen — REGISTER ────────────────────────────
   if (selectedRole === 'citoyen' && step === 'register') {
     return (
-      <div className="lp-login-page lp-citizen-mode">
-        <div className="lp-choose-bg" />
-        <div className="lp-choose-orbs">
-          <div className="lp-orb lp-orb-1" />
-          <div className="lp-orb lp-orb-2" />
-          <div className="lp-orb lp-orb-3" />
-        </div>
-        <div className="lp-login-card">
-          <button className="lp-back-btn" onClick={() => setStep('login')}>← Retour</button>
-          <img src="/Logo-Ecotrack.png" alt="EcoTrack" className="lp-login-logo" />
-          <div className="lp-login-role-badge">🌿 Créer un compte citoyen</div>
-          <h2 className="lp-login-title">Inscription</h2>
-          {error && <div className="lp-login-error">{error}</div>}
-          <form onSubmit={handleRegisterSubmit} className="lp-login-form">
-            <div className="lp-row">
-              <div className="lp-field">
-                <label>Prénom *</label>
-                <input type="text" value={reg.firstName} onChange={setR('firstName')}
-                  placeholder="Jean" required autoFocus />
-              </div>
-              <div className="lp-field">
-                <label>Nom *</label>
-                <input type="text" value={reg.lastName} onChange={setR('lastName')}
-                  placeholder="Dupont" required />
-              </div>
-            </div>
-            <div className="lp-field">
-              <label>Adresse email *</label>
-              <input type="email" value={reg.email} onChange={setR('email')}
-                placeholder="votre@email.com" required />
-            </div>
-            <div className="lp-field">
-              <label>Téléphone</label>
-              <input type="tel" value={reg.phone} onChange={setR('phone')}
-                placeholder="+33 6 00 00 00 00" />
-            </div>
-            <div className="lp-field">
-              <label>Mot de passe *</label>
-              <div className="lp-pwd-wrap">
-                <input
-                  type={showRegPwd ? 'text' : 'password'}
-                  value={reg.password}
-                  onChange={(e) => { setR('password')(e); setRegPwdError(''); }}
-                  placeholder="Min 8 car. avec majuscule, chiffre, spécial"
-                  required
-                />
-                <button
-                  type="button"
-                  className="lp-pwd-toggle"
-                  onClick={() => setShowRegPwd((v) => !v)}
-                  tabIndex={-1}
-                >
-                  {showRegPwd ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-              <p className="lp-pwd-hint">8 car. · majuscule · minuscule · chiffre · spécial (!@#$%^&*)</p>
-              {regPwdError && <p className="lp-pwd-error">{regPwdError}</p>}
-            </div>
-            <button type="submit" className="lp-submit-btn" disabled={loading}>
-              {loading ? <span className="lp-spinner" /> : null}
-              {loading ? 'Inscription...' : "Créer mon compte"}
-            </button>
-          </form>
-          <p className="lp-link">
-            Déjà un compte ?{' '}
-            <button type="button" onClick={() => { setStep('login'); setError(''); }}>
-              Se connecter
-            </button>
-          </p>
-        </div>
-      </div>
+      <RegisterStepper
+        reg={reg}
+        setR={setR}
+        onSubmit={handleRegisterSubmit}
+        onBack={() => { setStep('login'); setError(''); }}
+        loading={loading}
+        error={error}
+        regPwdError={regPwdError}
+        showRegPwd={showRegPwd}
+        setShowRegPwd={setShowRegPwd}
+        setRegPwdError={setRegPwdError}
+      />
     );
   }
 
