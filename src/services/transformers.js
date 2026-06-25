@@ -2,6 +2,14 @@
  * Data Transformers - Convert between Frontend and Backend formats
  */
 
+const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
+
+const resolvePhotoUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 // ============================================
 // USER TRANSFORMER
 // ============================================
@@ -244,8 +252,8 @@ export const transformSignalementToFrontend = (backendData) => {
     agent_id:      backendData.agent_id || backendData.id_agent || null,
     latitude:      backendData.latitude  ?? backendData.localisation?.latitude  ?? null,
     longitude:     backendData.longitude ?? backendData.localisation?.longitude ?? null,
-    photo_url:              backendData.photo_url || backendData.photo || null,
-    photo_resolution_url:   backendData.photo_resolution_url || null,
+    photo_url:              resolvePhotoUrl(backendData.photo_url || backendData.photo),
+    photo_resolution_url:   resolvePhotoUrl(backendData.photo_resolution_url),
     motif_rejet:            backendData.motif_rejet || null,
     date_resolution:        backendData.date_resolution || null,
     notes_resolution:       backendData.notes_resolution || null,
