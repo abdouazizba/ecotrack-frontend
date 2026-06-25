@@ -70,6 +70,7 @@ export default function Sidebar() {
       label: 'Administration',
       items: [
         { icon: Users, label: 'Utilisateurs', id: 'users', path: '/users' },
+        { icon: Users, label: 'Citoyens', id: 'citoyens', path: '/citoyens' },
         { icon: History, label: 'Historique', id: 'historique', path: '/historique' },
       ],
     },

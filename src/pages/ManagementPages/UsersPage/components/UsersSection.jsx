@@ -27,9 +27,8 @@ export default function UsersSection() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getUsers();
-      const all = Array.isArray(data) ? data : [];
-      setUsers(all.filter((u) => u.role !== 'citoyen'));
+      const data = await getUsers({ role_ne: 'citoyen' });
+      setUsers(Array.isArray(data) ? data : []);
       setError(null);
     } catch {
       setError('Erreur lors du chargement des utilisateurs');

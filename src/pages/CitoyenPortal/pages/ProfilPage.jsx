@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getSignalementsCitoyen, getUsers, updateUser } from '../../../services/api';
+import { getSignalementsCitoyen, getCitoyens, updateUser } from '../../../services/api';
 import useAuthStore from '../../../store/authStore';
 import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -89,28 +89,21 @@ export default function ProfilPage() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const [sigsResult, usersResult] = await Promise.allSettled([
+      const [sigsResult, citoyensResult] = await Promise.allSettled([
         getSignalementsCitoyen(user.id),
-        getUsers({ role: 'citoyen', limit: 50 }),
+        getCitoyens(1, 10, 'score'),
       ]);
       const mySigs = sigsResult.status === 'fulfilled' ? sigsResult.value : [];
       setSigs(mySigs);
 
-      if (usersResult.status === 'fulfilled') {
-        const citizens = usersResult.value.slice(0, 20);
-        const sigResults = await Promise.allSettled(
-          citizens.map((c) => getSignalementsCitoyen(c.id))
-        );
-        const board = citizens.map((c, i) => {
-          const cSigs = sigResults[i].status === 'fulfilled' ? sigResults[i].value : [];
-          return {
-            id: c.id,
-            name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.email,
-            pts: c.id === user.id ? calcPoints(mySigs) : calcPoints(cSigs),
-          };
-        });
-        board.sort((a, b) => b.pts - a.pts);
-        setLeaderboard(board.slice(0, 10));
+      if (citoyensResult.status === 'fulfilled') {
+        const top = citoyensResult.value.citoyens || [];
+        const board = top.map((c) => ({
+          id: c.id,
+          name: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.email,
+          pts: c.score_reputation || 0,
+        }));
+        setLeaderboard(board);
       }
     } finally {
       setLoading(false);
