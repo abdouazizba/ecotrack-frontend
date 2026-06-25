@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Home, AlertCircle, List, User, LogOut } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import LogoutModal from '../../components/common/LogoutModal';
+import ProfileSetupWizard from '../../components/common/ProfileSetupWizard';
 import './CitoyenPortal.css';
 
 const NAV_ITEMS = [
@@ -13,9 +14,14 @@ const NAV_ITEMS = [
 ];
 
 export default function CitoyenPortal() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, profileCompleted } = useAuthStore();
   const navigate = useNavigate();
   const [showLogout, setShowLogout] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+
+  useEffect(() => {
+    if (!profileCompleted) setShowWizard(true);
+  }, [profileCompleted]);
 
   const initials = [user?.firstName?.[0], user?.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '?';
 
@@ -81,6 +87,12 @@ export default function CitoyenPortal() {
         isOpen={showLogout}
         onConfirm={confirmLogout}
         onCancel={() => setShowLogout(false)}
+      />
+
+      <ProfileSetupWizard
+        isOpen={showWizard}
+        onComplete={() => setShowWizard(false)}
+        onSkip={() => setShowWizard(false)}
       />
 
       {/* Bottom nav (mobile) */}
