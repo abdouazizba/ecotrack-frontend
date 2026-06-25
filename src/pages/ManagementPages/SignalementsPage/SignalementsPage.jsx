@@ -3,6 +3,7 @@ import { Download, Zap } from 'lucide-react';
 import {
   getSignalements, patchSignalement, deleteSignalement,
   getAgents, getContainers, getZones, getTournees, autoAssignSignalements,
+  addSignalementToTournee,
 } from '../../../services/api';
 import { exportToCsv } from '../../../utils/exportCsv';
 import SignalementsList from './components/SignalementsList';
@@ -14,6 +15,7 @@ export default function SignalementsPage() {
   const [agents, setAgents]               = useState([]);
   const [containers, setContainers]       = useState([]);
   const [zones, setZones]                 = useState([]);
+  const [tournees, setTournees]           = useState([]);
   const [selectedId, setSelectedId]       = useState(null);
   const [filter, setFilter]               = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -24,13 +26,14 @@ export default function SignalementsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [data, agentsData, containersData, zonesData] = await Promise.all([
-        getSignalements(), getAgents(), getContainers(), getZones(),
+      const [data, agentsData, containersData, zonesData, tourneesData] = await Promise.all([
+        getSignalements(), getAgents(), getContainers(), getZones(), getTournees(),
       ]);
       setSignalements(data);
       setAgents(agentsData || []);
       setContainers(containersData || []);
       setZones(zonesData || []);
+      setTournees(tourneesData || []);
       setError(null);
     } catch {
       setError('Erreur lors du chargement des signalements');
@@ -90,6 +93,15 @@ export default function SignalementsPage() {
       setError('Erreur lors de la suppression');
     }
   }, [load, selectedId]);
+
+  const handleAddToTournee = useCallback(async (sigId, tourneeId) => {
+    try {
+      await addSignalementToTournee(tourneeId, [sigId]);
+      await load();
+    } catch {
+      setError("Erreur lors de l'ajout à la tournée");
+    }
+  }, [load]);
 
   const [assigning, setAssigning] = useState(false);
 
@@ -205,8 +217,10 @@ export default function SignalementsPage() {
           <SignalementDetail
             signalement={selectedSignalement}
             agents={agents}
+            tournees={tournees}
             onStatusChange={handleStatusChange}
             onAgentAssign={handleAgentAssign}
+            onAddToTournee={handleAddToTournee}
             onDelete={handleDelete}
           />
         </div>

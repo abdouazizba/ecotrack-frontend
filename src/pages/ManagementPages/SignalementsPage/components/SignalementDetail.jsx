@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   AlertCircle, Clock, CheckCircle, XCircle, Trash2,
   MapPin, Package, Tag, Calendar, ArrowRight, RotateCcw,
-  UserCheck, AlertTriangle, Image, History,
+  AlertTriangle, Image, History, Route, Plus,
 } from 'lucide-react';
 import SignalementAudit from './SignalementAudit';
 
@@ -40,7 +40,7 @@ function getSlaWarning(sig) {
   return days > 0 ? `${days}j de retard` : `${Math.floor(ageHours)}h de retard`;
 }
 
-export default function SignalementDetail({ signalement, agents = [], onStatusChange, onDelete, onAgentAssign }) {
+export default function SignalementDetail({ signalement, agents = [], tournees = [], onStatusChange, onDelete, onAgentAssign, onAddToTournee }) {
   const [rejectMode, setRejectMode]   = useState(false);
   const [motifRejet, setMotifRejet]   = useState('');
   const [closeMode, setCloseMode]     = useState(false);
@@ -193,22 +193,50 @@ export default function SignalementDetail({ signalement, agents = [], onStatusCh
         </div>
       )}
 
-      {/* assignation agent */}
-      {onAgentAssign && agents.length > 0 && signalement.status !== 'closed' && signalement.status !== 'rejected' && (
-        <div className="sig-detail-section">
-          <h3><UserCheck size={14} /> Agent assigné</h3>
-          <select
-            className="sig-agent-select"
-            value={signalement.agent_id || ''}
-            onChange={(e) => onAgentAssign(signalement.id, e.target.value || null)}
-          >
-            <option value="">— Non assigné —</option>
-            {agents.map((a) => (
-              <option key={a.id} value={a.id}>{a.firstName} {a.lastName}</option>
-            ))}
-          </select>
-        </div>
-      )}
+      {/* tournée liée */}
+      <div className="sig-detail-section">
+        <h3><Route size={14} /> Tournée</h3>
+        {signalement.id_tournee ? (() => {
+          const t = tournees.find((tr) => tr.id === signalement.id_tournee);
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'rgba(59,130,246,0.08)', borderRadius: 8, border: '1px solid rgba(59,130,246,0.15)' }}>
+              <Route size={14} color="#3b82f6" />
+              <span style={{ color: 'var(--color-text-primary)', fontSize: '0.85rem', fontWeight: 500 }}>
+                {t ? (t.titre || t.code || `Tournée #${t.id.slice(0, 8)}`) : `Tournée #${signalement.id_tournee.slice(0, 8)}`}
+              </span>
+              {t && (
+                <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem', marginLeft: 'auto' }}>
+                  {t.date_prevue ? new Date(t.date_prevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : ''}
+                </span>
+              )}
+            </div>
+          );
+        })() : (
+          <>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.82rem', margin: '0 0 8px' }}>
+              Ce signalement n'est rattaché à aucune tournée.
+            </p>
+            {onAddToTournee && tournees.filter((t) => t.status === 'pending' || t.status === 'in_progress').length > 0 && (
+              <select
+                className="sig-agent-select"
+                value=""
+                onChange={(e) => { if (e.target.value) onAddToTournee(signalement.id, e.target.value); }}
+              >
+                <option value="">— Ajouter à une tournée —</option>
+                {tournees
+                  .filter((t) => t.status === 'pending' || t.status === 'in_progress')
+                  .map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.titre || t.code || `Tournée #${t.id.slice(0, 8)}`}
+                      {t.date_prevue ? ` — ${new Date(t.date_prevue).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : ''}
+                      {t.status === 'in_progress' ? ' (en cours)' : ''}
+                    </option>
+                  ))}
+              </select>
+            )}
+          </>
+        )}
+      </div>
 
       {/* actions */}
       <div className="sig-detail-section">
