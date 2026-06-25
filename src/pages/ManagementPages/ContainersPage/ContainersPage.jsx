@@ -302,7 +302,7 @@ export default function ContainersPage() {
       {/* ── Header ─────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <Box size={22} color="#10b981" />
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f1f5f9', margin: 0, flex: 1 }}>
+        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0, flex: 1 }}>
           Conteneurs <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}>({filtered.length})</span>
         </h1>
         <button onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, background: '#10b981', color: '#fff' }}>

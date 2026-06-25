@@ -42,7 +42,7 @@ export default function AgentDashboardPage() {
 
   return (
     <div style={{ padding: '24px' }}>
-      <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 8 }}>
+      <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>
         Bonjour, {user?.firstName || 'Agent'} 👋
       </h1>
       <p style={{ color: '#64748b', marginBottom: 28 }}>Voici un résumé de votre activité.</p>

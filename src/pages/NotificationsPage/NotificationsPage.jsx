@@ -172,7 +172,7 @@ const styles = {
   title: {
     fontSize: '24px',
     fontWeight: 700,
-    color: '#e2e8f0',
+    color: 'var(--color-text-primary)',
     margin: 0,
   },
   badge: {

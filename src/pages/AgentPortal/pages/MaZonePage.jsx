@@ -21,7 +21,7 @@ const TYPE_LABELS = {
 const S = {
   page:  { padding: '24px', maxWidth: 1200, margin: '0 auto' },
   header: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' },
-  title: { fontSize: '1.25rem', fontWeight: 700, color: '#f1f5f9', margin: 0, flex: 1 },
+  title: { fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0, flex: 1 },
   counter: { fontSize: '0.8rem', color: '#64748b', background: 'rgba(255,255,255,0.06)', padding: '4px 10px', borderRadius: 20 },
   controls: { display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' },
   searchWrap: { position: 'relative', flex: '1 1 180px', minWidth: 0 },

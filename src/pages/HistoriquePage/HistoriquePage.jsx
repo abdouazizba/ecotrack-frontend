@@ -636,7 +636,7 @@ export default function HistoriquePage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <History size={22} color="#3b82f6" />
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>
           Historique{' '}
           <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}>({filteredEvents.length})</span>
         </h1>

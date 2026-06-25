@@ -136,7 +136,7 @@ export default function MesSignalementsAgentPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
         <AlertCircle size={20} color="#f59e0b" />
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>
           Mes signalements
         </h1>
         <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: '#64748b', background: 'rgba(255,255,255,0.06)', padding: '4px 10px', borderRadius: 20 }}>
