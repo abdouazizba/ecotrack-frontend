@@ -459,7 +459,7 @@ export default function CapteurPage() {
         {tab === 'monitoring' ? renderDetailMonitoring() : renderDetailGestion()}
       </div>
 
-      <CapteurFormModal show={showForm} capteur={editCapteur} conteneurs={containers} onClose={() => setShowForm(false)} onSubmit={handleFormSubmit} />
+      <CapteurFormModal show={showForm} capteur={editCapteur} conteneurs={containers} capteurs={capteurs} onClose={() => setShowForm(false)} onSubmit={handleFormSubmit} />
       <AssignConteneurModal show={showAssign} capteur={assignTarget} conteneurs={containers} onClose={() => setShowAssign(false)} onSubmit={handleAssignSubmit} />
 
       <style>{`

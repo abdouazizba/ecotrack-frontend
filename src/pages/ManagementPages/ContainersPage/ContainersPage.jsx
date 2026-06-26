@@ -59,6 +59,10 @@ const STATUS_FILTERS = [
 
 const TYPE_FILTERS = [
   ['all', 'Tous types'],
+  ['standard', 'Standard'],
+  ['selective', 'Sélectif'],
+  ['organic', 'Organique'],
+  ['hazardous', 'Dangereux'],
   ['poubelle', 'Poubelle'],
   ['benne', 'Benne'],
   ['conteneur_enterre', 'Enterré'],

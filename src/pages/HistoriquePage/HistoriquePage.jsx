@@ -84,16 +84,27 @@ const formatRelativeTime = (dateStr) => {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now - date;
-  const diffMin = Math.floor(diffMs / 60000);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
+  const absDiffMs = Math.abs(diffMs);
+  const absDiffMin = Math.floor(absDiffMs / 60000);
+  const absDiffHour = Math.floor(absDiffMin / 60);
+  const absDiffDay = Math.floor(absDiffHour / 24);
+  const isFuture = diffMs < 0;
 
-  if (diffMin < 1) return 'À l\'instant';
-  if (diffMin < 60) return `Il y a ${diffMin} min`;
-  if (diffHour < 24) return `Il y a ${diffHour}h`;
-  if (diffDay === 1) return 'Hier';
-  if (diffDay < 7) return `Il y a ${diffDay} jours`;
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  if (absDiffMin < 1) return 'À l\'instant';
+
+  if (isFuture) {
+    if (absDiffMin < 60) return `Dans ${absDiffMin} min`;
+    if (absDiffHour < 24) return `Dans ${absDiffHour}h`;
+    if (absDiffDay === 1) return 'Demain';
+    if (absDiffDay < 7) return `Dans ${absDiffDay} jours`;
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });
+  }
+
+  if (absDiffMin < 60) return `Il y a ${absDiffMin} min`;
+  if (absDiffHour < 24) return `Il y a ${absDiffHour}h`;
+  if (absDiffDay === 1) return 'Hier';
+  if (absDiffDay < 7) return `Il y a ${absDiffDay} jours`;
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });
 };
 
 const getDateGroup = (dateStr) => {
@@ -105,9 +116,13 @@ const getDateGroup = (dateStr) => {
   yesterday.setDate(yesterday.getDate() - 1);
   const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
   if (dateOnly.getTime() === today.getTime()) return "Aujourd'hui";
   if (dateOnly.getTime() === yesterday.getTime()) return 'Hier';
-  return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  if (dateOnly.getTime() === tomorrow.getTime()) return 'Demain';
+  return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Paris' });
 };
 
 const isInDateRange = (dateStr, range) => {

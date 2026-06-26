@@ -163,8 +163,8 @@ export default function ContainerForm({ show, editingContainer, zones: zonesProp
 
       <MapPickerModal
         show={showMap}
-        initialLat={form.latitude}
-        initialLng={form.longitude}
+        initialLat={form.latitude || zones.find((z) => z.id === form.zoneId)?.latitude}
+        initialLng={form.longitude || zones.find((z) => z.id === form.zoneId)?.longitude}
         onConfirm={(lat, lng) =>
           setForm((f) => ({
             ...f,
