@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import { X, MapPin, Check } from 'lucide-react';
+import UserLocationMarker from './UserLocationMarker';
 import './MapPickerModal.css';
 
 // Fix leaflet default icon
@@ -69,6 +70,7 @@ export default function MapPickerModal({ show, initialLat, initialLng, onConfirm
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
             <ClickHandler onPick={setPosition} />
+            <UserLocationMarker />
             {position && <Marker position={position} />}
           </MapContainer>
         </div>

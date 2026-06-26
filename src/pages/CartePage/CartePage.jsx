@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { getContainers, getZones, getSignalements, getCapteurs } from '../../services/api';
 import { enrichContainersWithSensors } from '../../services/transformers';
 import { Map, RefreshCw, Layers, Package, AlertTriangle, MapPin, Info } from 'lucide-react';
+import UserLocationMarker from '../../components/common/UserLocationMarker';
 
 // ── FitBounds helper ─────────────────────────────────────────────────────────
 function FitBoundsHelper({ bounds }) {
@@ -515,6 +516,7 @@ export default function CartePage() {
           />
 
           {bounds && bounds.isValid() && <FitBoundsHelper bounds={bounds} />}
+          <UserLocationMarker />
 
           {/* ── Zones ── */}
           {zoneElements}

@@ -8,6 +8,7 @@ import {
   Navigation, ArrowRight, CheckCircle, Image, AlertTriangle,
   Route, RefreshCw,
 } from 'lucide-react';
+import UserLocationMarker from '../../../components/common/UserLocationMarker';
 import {
   getTourneesByAgent,
   getSignalementsByTournee,
@@ -348,6 +349,7 @@ export default function MaTourneePage() {
               attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
             />
 
+            <UserLocationMarker flyTo />
             <FitBounds points={agentPos ? [agentPos, ...polyPoints] : polyPoints} />
             <RecenterButton agentPos={agentPos} />
 
