@@ -4,6 +4,8 @@ import {
   ChevronLeft, ChevronRight, X, User,
 } from 'lucide-react';
 import { getVehicules, createVehicule, updateVehicule, deleteVehicule, getAgents } from '../../../services/api';
+import ModalBrandPanel from '../../../components/common/ModalBrandPanel';
+import SearchableSelect from '../../../components/common/SearchableSelect';
 
 const STATUS_META = {
   ACTIF:          { label: 'Actif',       color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
@@ -300,52 +302,68 @@ export default function VehiculesPage() {
 
       {/* Modal form */}
       {showForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }} onClick={() => setShowForm(false)}>
-          <div style={{ background: '#1e2433', borderRadius: 14, padding: 24, width: 440, maxWidth: '92vw', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ color: '#e2e8f0', margin: '0 0 16px', fontWeight: 700 }}>{editing ? 'Modifier le véhicule' : 'Nouveau véhicule'}</h3>
-            <form onSubmit={handleSubmit}>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <Field label="Immatriculation" required>
-                  <input style={inputStyle} placeholder="AB-123-CD" value={form.immatriculation} onChange={e => setForm({...form, immatriculation: e.target.value})} required />
-                </Field>
-                <Field label="Type">
-                  <select style={inputStyle} value={form.type_vehicule} onChange={e => setForm({...form, type_vehicule: e.target.value})}>
-                    <option value="BENNE">Benne</option><option value="COMPACTEUR">Compacteur</option><option value="UTILITAIRE">Utilitaire</option><option value="CAMION_GRUE">Camion-grue</option>
+        <div className="t-overlay" onClick={() => setShowForm(false)}>
+          <div className="t-modal modal-split" onClick={e => e.stopPropagation()}>
+            <ModalBrandPanel />
+            <div className="modal-right">
+              <div className="t-modal-header">
+                <h3>{editing ? 'Modifier le véhicule' : 'Nouveau véhicule'}</h3>
+                <button className="t-modal-close" onClick={() => setShowForm(false)}><X size={18} /></button>
+              </div>
+              <form onSubmit={handleSubmit} className="t-modal-form">
+                <div className="t-field" style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label>Immatriculation *</label>
+                    <input placeholder="AB-123-CD" value={form.immatriculation} onChange={e => setForm({...form, immatriculation: e.target.value})} required />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Type</label>
+                    <select value={form.type_vehicule} onChange={e => setForm({...form, type_vehicule: e.target.value})}>
+                      <option value="BENNE">Benne</option><option value="COMPACTEUR">Compacteur</option><option value="UTILITAIRE">Utilitaire</option><option value="CAMION_GRUE">Camion-grue</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="t-field" style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label>Marque *</label>
+                    <input placeholder="Renault" value={form.marque} onChange={e => setForm({...form, marque: e.target.value})} required />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Modèle</label>
+                    <input placeholder="Midlum 220" value={form.modele} onChange={e => setForm({...form, modele: e.target.value})} />
+                  </div>
+                </div>
+                <div className="t-field" style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label>Capacité (t)</label>
+                    <input type="number" step="0.1" min="0" value={form.capacite_tonnes} onChange={e => setForm({...form, capacite_tonnes: e.target.value})} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Kilométrage</label>
+                    <input type="number" min="0" value={form.kilometrage} onChange={e => setForm({...form, kilometrage: e.target.value})} />
+                  </div>
+                </div>
+                <div className="t-field">
+                  <label>Chauffeur assigné</label>
+                  <SearchableSelect
+                    value={form.id_agent}
+                    options={agents.map(a => ({ value: a.id, label: `${a.firstName} ${a.lastName}` }))}
+                    onChange={(val) => setForm({...form, id_agent: val})}
+                    placeholder="— Non assigné —"
+                  />
+                </div>
+                <div className="t-field">
+                  <label>Statut</label>
+                  <select value={form.statut} onChange={e => setForm({...form, statut: e.target.value})}>
+                    <option value="ACTIF">Actif</option><option value="INACTIF">Inactif</option><option value="EN_MAINTENANCE">En maintenance</option>
                   </select>
-                </Field>
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <Field label="Marque" required>
-                  <input style={inputStyle} placeholder="Renault" value={form.marque} onChange={e => setForm({...form, marque: e.target.value})} required />
-                </Field>
-                <Field label="Modèle">
-                  <input style={inputStyle} placeholder="Midlum 220" value={form.modele} onChange={e => setForm({...form, modele: e.target.value})} />
-                </Field>
-              </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <Field label="Capacité (t)">
-                  <input type="number" step="0.1" min="0" style={inputStyle} value={form.capacite_tonnes} onChange={e => setForm({...form, capacite_tonnes: e.target.value})} />
-                </Field>
-                <Field label="Kilométrage">
-                  <input type="number" min="0" style={inputStyle} value={form.kilometrage} onChange={e => setForm({...form, kilometrage: e.target.value})} />
-                </Field>
-              </div>
-              <Field label="Chauffeur assigné">
-                <select style={inputStyle} value={form.id_agent} onChange={e => setForm({...form, id_agent: e.target.value})}>
-                  <option value="">— Non assigné —</option>
-                  {agents.map(a => <option key={a.id} value={a.id}>{a.firstName} {a.lastName}</option>)}
-                </select>
-              </Field>
-              <Field label="Statut">
-                <select style={inputStyle} value={form.statut} onChange={e => setForm({...form, statut: e.target.value})}>
-                  <option value="ACTIF">Actif</option><option value="INACTIF">Inactif</option><option value="EN_MAINTENANCE">En maintenance</option>
-                </select>
-              </Field>
-              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button type="button" onClick={() => setShowForm(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem' }}>Annuler</button>
-                <button type="submit" style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', background: '#3b82f6', color: '#fff', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>{editing ? 'Enregistrer' : 'Créer'}</button>
-              </div>
-            </form>
+                </div>
+                <div className="t-modal-footer">
+                  <button type="button" className="t-btn-cancel" onClick={() => setShowForm(false)}>Annuler</button>
+                  <button type="submit" className="t-btn-confirm">{editing ? 'Enregistrer' : 'Créer'}</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
