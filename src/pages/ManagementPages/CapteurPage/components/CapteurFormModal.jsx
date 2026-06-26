@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
+import SearchableSelect from '../../../../components/common/SearchableSelect';
+import { getContainers } from '../../../../services/api';
 
 const genTag = () => {
   const d = new Date();
@@ -15,9 +17,18 @@ const EMPTY = {
   batterie: '',
 };
 
-export default function CapteurFormModal({ show, capteur, conteneurs, onClose, onSubmit }) {
+export default function CapteurFormModal({ show, capteur, conteneurs: conteneursProp, onClose, onSubmit }) {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(false);
+  const [conteneurs, setConteneurs] = useState(conteneursProp || []);
+
+  useEffect(() => {
+    if (show) getContainers().then((c) => setConteneurs(Array.isArray(c) ? c : [])).catch(() => {});
+  }, [show]);
+
+  useEffect(() => {
+    if (conteneursProp?.length) setConteneurs(conteneursProp);
+  }, [conteneursProp]);
 
   useEffect(() => {
     if (capteur) {
@@ -84,18 +95,12 @@ export default function CapteurFormModal({ show, capteur, conteneurs, onClose, o
 
           <div className="cap-field">
             <label>Conteneur *</label>
-            <select
-              required
+            <SearchableSelect
               value={form.id_conteneur}
-              onChange={(e) => setForm({ ...form, id_conteneur: e.target.value })}
-            >
-              <option value="">— Choisir un conteneur —</option>
-              {conteneurs.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.code_conteneur || c.name} ({c.type || '—'})
-                </option>
-              ))}
-            </select>
+              options={conteneurs.map((c) => ({ value: c.id, label: `${c.code_conteneur || c.name} (${c.type || '—'})` }))}
+              onChange={(val) => setForm({ ...form, id_conteneur: val })}
+              placeholder="— Choisir un conteneur —"
+            />
           </div>
 
           <div className="cap-field">
