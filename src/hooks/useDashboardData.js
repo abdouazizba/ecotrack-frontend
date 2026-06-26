@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getContainers, getSignalements, getZones, getAgents, getCapteurs, getDashboardStats, getContainersNeedingService, getTournees, getContainerStatsDashboard, getTourStatsDashboard } from '../services/api';
 import { enrichContainersWithSensors } from '../services/transformers';
+
+const REFRESH_INTERVAL = 30000;
 
 export default function useDashboardData() {
   const [state, setState] = useState({
@@ -15,7 +17,7 @@ export default function useDashboardData() {
     error: null,
   });
 
-  useEffect(() => {
+  const load = useCallback(() => {
     Promise.allSettled([getContainers(), getSignalements(), getZones(), getAgents(), getCapteurs(), getDashboardStats(), getContainersNeedingService(), getTournees(), getContainerStatsDashboard(), getTourStatsDashboard()])
       .then(([cRes, sRes, zRes, aRes, capRes, statsRes, critRes, tourRes, cStatsRes, tStatsRes]) => {
         const rawContainers = cRes.status === 'fulfilled' ? cRes.value : [];
@@ -37,6 +39,13 @@ export default function useDashboardData() {
         });
       });
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const iv = setInterval(load, REFRESH_INTERVAL);
+    return () => clearInterval(iv);
+  }, [load]);
 
   return state;
 }

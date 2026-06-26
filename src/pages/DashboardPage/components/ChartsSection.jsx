@@ -265,80 +265,148 @@ function buildContainersByZone(containers, zones) {
   };
 }
 
+function buildResolutionTime(signalements) {
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  const labels = days.map((d) => d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }));
+  const values = days.map((d) => {
+    const dayStr = d.toISOString().split('T')[0];
+    const resolved = signalements.filter((s) =>
+      s.status === 'closed' && s.date_resolution && s.created_at &&
+      (typeof s.date_resolution === 'string' ? s.date_resolution.startsWith(dayStr) : false)
+    );
+    if (resolved.length === 0) return 0;
+    const totalH = resolved.reduce((sum, s) => sum + (new Date(s.date_resolution) - new Date(s.created_at)), 0);
+    return Math.round(totalH / resolved.length / 3600000);
+  });
+
+  return {
+    tooltip: { ...TOOLTIP, trigger: 'axis', formatter: '{b}: {c}h' },
+    grid: GRID,
+    xAxis: { type: 'category', data: labels, axisLabel: { color: '#64748b' }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+    yAxis: { type: 'value', axisLabel: { color: '#64748b', formatter: '{value}h' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+    series: [{
+      data: values,
+      type: 'bar',
+      itemStyle: {
+        color: (p) => p.value > 48 ? COLORS.red : p.value > 24 ? COLORS.amber : COLORS.green,
+        borderRadius: [6, 6, 0, 0],
+      },
+      barMaxWidth: 40,
+    }],
+  };
+}
+
+function buildCitoyenActivity(signalements) {
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  const labels = days.map((d) => d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }));
+  const values = days.map((d) => {
+    const dayStr = d.toISOString().split('T')[0];
+    const unique = new Set(
+      signalements
+        .filter((s) => s.id_utilisateur && s.created_at && (typeof s.created_at === 'string' ? s.created_at.startsWith(dayStr) : false))
+        .map((s) => s.id_utilisateur)
+    );
+    return unique.size;
+  });
+
+  return {
+    tooltip: { ...TOOLTIP, trigger: 'axis' },
+    grid: GRID,
+    xAxis: { type: 'category', data: labels, axisLabel: { color: '#64748b' }, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+    yAxis: { type: 'value', axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#f1f5f9' } }, minInterval: 1 },
+    series: [{
+      data: values,
+      type: 'line',
+      smooth: 0.4,
+      itemStyle: { color: COLORS.purple },
+      lineStyle: { color: COLORS.purple, width: 2.5 },
+      areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: COLORS.purple + '40' }, { offset: 1, color: COLORS.purple + '05' }] } },
+      symbolSize: 6,
+    }],
+  };
+}
+
 // ── component ─────────────────────────────────────────────────────────────────
 
 export default function ChartsSection({ containers, signalements, zones, agents, tournees = [], loading }) {
-  const evolution  = useMemo(() => buildEvolution(signalements), [signalements]);
-  const byType     = useMemo(() => buildSignalByType(signalements), [signalements]);
-  const priority   = useMemo(() => buildPriority(signalements), [signalements]);
-  const statut     = useMemo(() => buildStatutSig(signalements), [signalements]);
-  const fillZone   = useMemo(() => buildFillByZone(containers, zones), [containers, zones]);
-  const topAgents  = useMemo(() => buildTopAgents(signalements, agents), [signalements, agents]);
-  const tourneeStatus   = useMemo(() => buildTourneeStatus(tournees), [tournees]);
-  const tourneeEvo      = useMemo(() => buildTourneeEvolution(tournees), [tournees]);
+  const evolution      = useMemo(() => buildEvolution(signalements), [signalements]);
+  const byType         = useMemo(() => buildSignalByType(signalements), [signalements]);
+  const priority       = useMemo(() => buildPriority(signalements), [signalements]);
+  const fillZone       = useMemo(() => buildFillByZone(containers, zones), [containers, zones]);
+  const topAgents      = useMemo(() => buildTopAgents(signalements, agents), [signalements, agents]);
+  const tourneeStatus  = useMemo(() => buildTourneeStatus(tournees), [tournees]);
+  const tourneeEvo     = useMemo(() => buildTourneeEvolution(tournees), [tournees]);
   const containersByZone = useMemo(() => buildContainersByZone(containers, zones), [containers, zones]);
+  const resolutionTime = useMemo(() => buildResolutionTime(signalements), [signalements]);
+  const citoyenActivity = useMemo(() => buildCitoyenActivity(signalements), [signalements]);
 
   if (loading) {
     return (
-      <>
-        <div className="charts-grid-2col">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="chart-skeleton" style={{ height: 320, borderRadius: 12, background: '#f1f5f9' }} />
-          ))}
-        </div>
-        <div className="chart-wrapper full-width">
-          <div className="chart-skeleton" style={{ height: 280, borderRadius: 12, background: '#f1f5f9' }} />
-        </div>
-      </>
+      <div className="charts-grid-2col">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="chart-skeleton" style={{ height: 320, borderRadius: 12, background: '#f1f5f9' }} />
+        ))}
+      </div>
     );
   }
 
   return (
     <>
-      {/* Row 1 */}
+      {/* Row 1 — Signalements */}
       <div className="charts-grid-2col">
         <div className="chart-wrapper">
-          <ChartCard title="Évolution des Signalements (7 jours)" option={evolution} height={300} />
+          <ChartCard title="Signalements — 7 derniers jours" option={evolution} height={300} />
         </div>
         <div className="chart-wrapper">
-          <ChartCard title="Signalements par Type" option={byType} height={300} />
+          <ChartCard title="Signalements par type" option={byType} height={300} />
         </div>
       </div>
 
-      {/* Row 2 */}
+      {/* Row 2 — Priorités & Performance résolution */}
       <div className="charts-grid-2col">
         <div className="chart-wrapper">
-          <ChartCard title="Signalements par Priorité" option={priority} height={300} />
+          <ChartCard title="Signalements par priorité" option={priority} height={300} />
         </div>
         <div className="chart-wrapper">
-          <ChartCard title="Statut des Signalements" option={statut} height={300} />
+          <ChartCard title="Délai moyen de résolution (heures)" option={resolutionTime} height={300} />
         </div>
       </div>
 
-      {/* Row 3 */}
+      {/* Row 3 — Zones & Conteneurs */}
       <div className="charts-grid-2col">
         <div className="chart-wrapper">
-          <ChartCard title="Remplissage Moyen par Zone (%)" option={fillZone} height={300} />
+          <ChartCard title="Remplissage moyen par zone (%)" option={fillZone} height={300} />
         </div>
         <div className="chart-wrapper">
-          <ChartCard title="Top 5 Agents — Signalements Traités" option={topAgents} height={300} />
+          <ChartCard title="Conteneurs par zone" option={containersByZone} height={300} />
         </div>
       </div>
 
       {/* Row 4 — Tournées */}
       <div className="charts-grid-2col">
         <div className="chart-wrapper">
-          <ChartCard title="Tournées — Évolution Hebdomadaire" option={tourneeEvo} height={300} />
+          <ChartCard title="Tournées — évolution hebdomadaire" option={tourneeEvo} height={300} />
         </div>
         <div className="chart-wrapper">
-          <ChartCard title="Répartition des Tournées par Statut" option={tourneeStatus} height={300} />
+          <ChartCard title="Répartition des tournées" option={tourneeStatus} height={300} />
         </div>
       </div>
 
-      {/* Row 5 — Conteneurs */}
+      {/* Row 5 — Performance & Engagement */}
       <div className="charts-grid-2col">
         <div className="chart-wrapper">
-          <ChartCard title="Conteneurs par Zone" option={containersByZone} height={300} />
+          <ChartCard title="Top 5 agents — signalements traités" option={topAgents} height={300} />
+        </div>
+        <div className="chart-wrapper">
+          <ChartCard title="Citoyens actifs — 7 derniers jours" option={citoyenActivity} height={300} />
         </div>
       </div>
     </>
