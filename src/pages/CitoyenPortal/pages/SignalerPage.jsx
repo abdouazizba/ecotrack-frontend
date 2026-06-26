@@ -120,7 +120,11 @@ export default function SignalerPage() {
     try {
       const created = await createSignalement({ type, description, id_conteneur: containerId, priorite: priority });
       if (photoFile && created?.id) {
-        try { await uploadSignalementPhoto(created.id, photoFile); } catch {}
+        try {
+          await uploadSignalementPhoto(created.id, photoFile);
+        } catch (uploadErr) {
+          console.warn('Photo upload failed:', uploadErr.message);
+        }
       }
       setSuccess(true);
       // reset
