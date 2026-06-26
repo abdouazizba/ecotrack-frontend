@@ -1,70 +1,123 @@
-# Getting Started with Create React App
+# EcoTrack Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Application React pour la plateforme EcoTrack — gestion intelligente des dechets urbains.
 
-## Available Scripts
+## Stack technique
 
-In the project directory, you can run:
+| Technologie | Version | Role |
+|-------------|---------|------|
+| React | 19 | Framework UI |
+| React Router | 7 | Routing SPA |
+| Axios | 1.x | Appels API |
+| Zustand | 5.x | State management (auth store) |
+| Leaflet | 1.9 | Cartes interactives |
+| ECharts | 5.x | Graphes et KPIs dashboard |
+| Lucide React | 0.4x | Icones |
+| js-cookie | 3.x | Gestion cookies JWT |
 
-### `npm start`
+## Demarrage
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+npm install
+npm start
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Application disponible sur `http://localhost:3000`
 
-### `npm test`
+## Build production
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm run build
+```
 
-### `npm run build`
+## Structure du projet
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+src/
+  components/
+    common/          PageShell, ModalBrandPanel, MapPickerModal, SearchableSelect, Pagination
+    navigation/      Navbar, Sidebar
+    charts/          EchartsStatCard, ChartCard
+    auth/            ProtectedRoute, RoleGuard
+  pages/
+    LoginPage/       Connexion + inscription citoyen
+    DashboardPage/   KPIs, graphes, auto-refresh 30s
+    ManagementPages/
+      ContainersPage/    Conteneurs (monitoring/gestion)
+      CapteurPage/       Capteurs IoT (monitoring/gestion)
+      TourneesPage/      Tournees (monitoring/gestion)
+      SignalementsPage/  Signalements (monitoring/gestion)
+      CollecteursPage/   Vehicules (monitoring/gestion)
+      UsersPage/         Utilisateurs (agents/admins)
+      CitoyensPage/      Citoyens (gamification, classement)
+    HistoriquePage/      Timeline chronologique des actions
+    CitoyenPortal/       Portail citoyen (signaler, profil, badges)
+    AgentPortal/         Portail agent (tournees, carte, cloture)
+  services/
+    api.js           Appels API (axios + intercepteurs refresh token)
+    transformers.js  Conversion backend <-> frontend (statuts, types, champs)
+  store/
+    authStore.js     Zustand store (user, token, login/logout)
+  hooks/
+    useDashboardData.js  Hook auto-refresh 30s pour le dashboard
+  styles/
+    theme.css        Variables CSS, theme emeraude
+    echarts-cards.css  Stat cards styling
+    layout.css       Grilles et layouts
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Portails par role
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| Role | URL | Fonctionnalites |
+|------|-----|-----------------|
+| Admin | `/dashboard` | Dashboard KPIs, gestion conteneurs/tournees/signalements/users/citoyens, historique |
+| Agent | `/agent` | Mes tournees, carte live, cloture signalements avec photo |
+| Citoyen | `/citoyen` | Signaler un probleme, mes rapports, profil gamification, classement |
 
-### `npm run eject`
+## Composant PageShell
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Toutes les pages admin utilisent `PageShell` pour un layout unifie :
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- Header : icone + titre + toggle Monitoring/Gestion
+- Stats : 4 boxes KPI
+- Filtres : recherche + boutons statut + dropdown type
+- Bouton creer : visible en mode Gestion
+- Auto-refresh : countdown 30s en mode Monitoring
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Authentification
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- JWT access token (15 min) + refresh token (2 jours)
+- Auto-refresh silencieux via intercepteur axios
+- Rate limit 429 → deconnexion forcee + message "Session expiree"
+- Cookies `authToken` et `refreshToken`
 
-## Learn More
+## API Gateway
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Le frontend communique uniquement avec le gateway (`http://localhost:3000/api`).
+Le gateway route vers 6 microservices backend.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Transformers (backend <-> frontend)
 
-### Code Splitting
+Les donnees backend (francais : `statut`, `priorite`, `id_conteneur`) sont converties
+en format frontend (anglais : `status`, `priority`, `containerId`) via `services/transformers.js`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Mapping des statuts signalements :
+- `OUVERT` <-> `pending`
+- `EN_COURS_DE_TRAITEMENT` <-> `in_progress`
+- `FERME` <-> `closed`
+- `REJETE` <-> `rejected`
 
-### Analyzing the Bundle Size
+## Variables d'environnement
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```env
+REACT_APP_API_URL=http://localhost:3000/api
+```
 
-### Making a Progressive Web App
+## Docker
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+# Via docker-compose (depuis backend/)
+docker compose up -d frontend
+```
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Le Dockerfile build l'app React et la sert via un serveur Node.
