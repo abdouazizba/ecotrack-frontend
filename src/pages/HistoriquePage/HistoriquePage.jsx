@@ -314,7 +314,17 @@ const buildEvents = (signalements, tournees, _containers, _capteurs, users) => {
     }
   });
 
-  events.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  events.sort((a, b) => {
+    const da = new Date(a.date);
+    const db = new Date(b.date);
+    const aIsToday = da >= todayStart;
+    const bIsToday = db >= todayStart;
+    if (aIsToday && !bIsToday) return -1;
+    if (!aIsToday && bIsToday) return 1;
+    return db - da;
+  });
   return events;
 };
 
@@ -651,7 +661,7 @@ export default function HistoriquePage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <History size={22} color="#3b82f6" />
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>
+        <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#10b981', margin: 0, letterSpacing: '-0.3px' }}>
           Historique{' '}
           <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}>({filteredEvents.length})</span>
         </h1>
@@ -698,7 +708,7 @@ export default function HistoriquePage() {
             placeholder="Rechercher par titre, agent..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e2e8f0', fontSize: '0.82rem', padding: '7px 12px 7px 32px', outline: 'none', boxSizing: 'border-box' }}
+            style={{ width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 8, color: '#f1f5f9', fontSize: '0.85rem', padding: '9px 12px 9px 34px', outline: 'none', boxSizing: 'border-box' }}
           />
         </div>
 

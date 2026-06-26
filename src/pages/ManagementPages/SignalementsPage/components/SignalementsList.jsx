@@ -23,7 +23,7 @@ const PRIORITY_META = {
   critical: { label: 'Critique', color: '#ef4444' },
   high:     { label: 'Haute',    color: '#f97316' },
   medium:   { label: 'Normale',  color: '#3b82f6' },
-  low:      { label: 'Basse',    color: '#22c55e' },
+  low:      { label: 'Basse',    color: '#10b981' },
 };
 
 const SLA_LIMITS = { critical: 24, high: 48, medium: 120, low: 168 };
@@ -46,35 +46,87 @@ function SigCard({ sig, selectedId, onSelect }) {
   const status   = STATUS_META[sig.status]   || STATUS_META.pending;
   const priority = PRIORITY_META[sig.priority] || PRIORITY_META.medium;
   const overdue  = getSlaOverdue(sig);
+  const isSelected = selectedId === sig.id;
   const date = sig.created_at
     ? new Date(sig.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
     : '—';
 
+  const cardBorder = overdue
+    ? 'rgba(239,68,68,0.3)'
+    : isSelected
+      ? 'rgba(59,130,246,0.4)'
+      : 'rgba(255,255,255,0.08)';
+
+  const cardBg = overdue && !isSelected
+    ? 'rgba(239,68,68,0.04)'
+    : isSelected
+      ? 'rgba(59,130,246,0.08)'
+      : '#1e2433';
+
   return (
-    <button
-      className={`sig-card ${selectedId === sig.id ? 'active' : ''} ${overdue ? 'sig-card-overdue' : ''}`}
+    <div
       onClick={() => onSelect(sig.id)}
+      style={{
+        background: cardBg,
+        border: `1px solid ${cardBorder}`,
+        borderRadius: 10,
+        padding: '10px 14px',
+        cursor: 'pointer',
+        transition: 'all 0.15s',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        flexShrink: 0,
+      }}
     >
-      <div className="sigc-top">
-        <span className="sigc-type">{TYPE_LABELS[sig.type] || sig.type || 'Signalement'}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      {/* Top row: type + status badge */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ color: '#e2e8f0', fontWeight: 600, fontSize: '0.82rem', lineHeight: 1.3 }}>
+          {TYPE_LABELS[sig.type] || sig.type || 'Signalement'}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           {overdue && (
-            <span className="sig-sla-dot" title="Délai dépassé">
+            <span title="Délai dépassé" style={{ display: 'flex', alignItems: 'center' }}>
               <AlertTriangle size={11} color="#ef4444" />
             </span>
           )}
-          <span className="sig-badge" style={{ color: status.color, background: status.bg }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            padding: '3px 10px', borderRadius: 20,
+            fontSize: '0.68rem', fontWeight: 600, whiteSpace: 'nowrap',
+            color: status.color, background: status.bg,
+          }}>
             {status.label}
           </span>
         </div>
       </div>
-      <div className="sigc-meta">
-        <span className="sig-priority-dot" style={{ background: priority.color }} />
-        <span className="sigc-prio">{priority.label}</span>
-        <span className="sigc-date">{date}</span>
+
+      {/* Meta row: priority dot + label + date */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{
+          width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+          background: priority.color,
+        }} />
+        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748b' }}>
+          {priority.label}
+        </span>
+        <span style={{ fontSize: '0.72rem', color: '#475569', marginLeft: 'auto' }}>
+          {date}
+        </span>
       </div>
-      {sig.description && <p className="sigc-desc">{sig.description}</p>}
-    </button>
+
+      {/* Description preview */}
+      {sig.description && (
+        <p style={{
+          fontSize: '0.72rem', color: '#64748b', margin: 0,
+          overflow: 'hidden', display: '-webkit-box',
+          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+          lineHeight: 1.4,
+        }}>
+          {sig.description}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -127,57 +179,97 @@ export default function SignalementsList({
     : [];
 
   return (
-    <div className="sig-left">
-      <div className="sig-left-header">
-        <h2>Signalements</h2>
-        <span className="sig-count-badge">{signalements.length}</span>
-        <div className="sig-view-toggle">
-          <button
-            className={`sig-view-btn ${viewMode === 'list' ? 'active' : ''}`}
-            onClick={() => setViewMode('list')}
-            title="Vue liste"
-          >
-            <List size={14} />
-          </button>
-          <button
-            className={`sig-view-btn ${viewMode === 'by_zone' ? 'active' : ''}`}
-            onClick={() => setViewMode('by_zone')}
-            title="Par zone"
-          >
-            <MapPin size={14} />
-          </button>
+    <div style={{
+      display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0,
+    }}>
+      {/* Header: title + count + view toggle */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '12px 14px 10px', flexShrink: 0,
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#e2e8f0', margin: 0 }}>Signalements</h2>
+        <span style={{
+          background: 'rgba(59,130,246,0.12)', color: '#3b82f6',
+          border: '1px solid rgba(59,130,246,0.25)',
+          borderRadius: 20, padding: '2px 10px',
+          fontSize: '0.72rem', fontWeight: 700,
+        }}>
+          {signalements.length}
+        </span>
+        <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+          {[
+            { mode: 'list', Icon: List, title: 'Vue liste' },
+            { mode: 'by_zone', Icon: MapPin, title: 'Par zone' },
+          ].map(({ mode, Icon, title }) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              title={title}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 30, height: 30, border: 'none', borderRadius: 8,
+                cursor: 'pointer', transition: 'all 0.15s',
+                background: viewMode === mode ? '#3b82f6' : 'rgba(255,255,255,0.06)',
+                color: viewMode === mode ? '#fff' : '#64748b',
+              }}
+            >
+              <Icon size={14} />
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* Filter tabs + search (hidden when PageShell handles them) */}
       {!hideFilters && (
         <>
-          <div className="sig-tabs">
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', padding: '8px 10px', gap: 4,
+            borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink: 0,
+          }}>
             {FILTERS.map(([key, label]) => (
               <button
                 key={key}
-                className={`sig-tab ${filter === key ? 'active' : ''}`}
                 onClick={() => onFilterChange(key)}
+                style={{
+                  padding: '5px 10px', border: 'none', borderRadius: 6,
+                  fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'inherit', transition: 'all 0.15s',
+                  background: filter === key ? 'rgba(59,130,246,0.15)' : 'transparent',
+                  color: filter === key ? '#3b82f6' : '#64748b',
+                }}
               >
                 {label}
               </button>
             ))}
           </div>
 
-          {/* Recherche + filtre priorité */}
-          <div style={{ display: 'flex', gap: 8, padding: '0 12px 10px', flexWrap: 'wrap' }}>
+          {/* Recherche + filtre priorite */}
+          <div style={{ display: 'flex', gap: 8, padding: '8px 12px 10px', flexWrap: 'wrap' }}>
             <input
               type="text"
-              placeholder="Rechercher…"
+              placeholder="Rechercher..."
               value={search}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              style={{ flex: 1, minWidth: 120, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, color: '#e2e8f0', fontSize: '0.8rem', padding: '5px 10px', outline: 'none' }}
+              style={{
+                flex: 1, minWidth: 120,
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 7, color: '#e2e8f0',
+                fontSize: '0.8rem', padding: '5px 10px', outline: 'none',
+              }}
             />
             <select
               value={priorityFilter}
               onChange={(e) => onPriorityChange?.(e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, color: '#94a3b8', fontSize: '0.78rem', padding: '5px 8px', cursor: 'pointer' }}
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 7, color: '#94a3b8',
+                fontSize: '0.78rem', padding: '5px 8px', cursor: 'pointer',
+              }}
             >
-              <option value="all">Toutes priorités</option>
+              <option value="all">Toutes priorites</option>
               <option value="critical">Critique</option>
               <option value="high">Haute</option>
               <option value="medium">Normale</option>
@@ -187,10 +279,17 @@ export default function SignalementsList({
         </>
       )}
 
-      <div className="sig-list">
-        {loading && <p className="sig-empty">Chargement…</p>}
+      {/* List area */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {loading && (
+          <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.82rem', padding: '28px 0', margin: 0 }}>
+            Chargement...
+          </p>
+        )}
         {!loading && signalements.length === 0 && (
-          <p className="sig-empty">Aucun signalement{filter !== 'all' ? ' dans ce statut' : ''}</p>
+          <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.82rem', padding: '28px 0', margin: 0 }}>
+            Aucun signalement{filter !== 'all' ? ' dans ce statut' : ''}
+          </p>
         )}
 
         {!loading && viewMode === 'list' && paged.map((sig) => (
@@ -198,11 +297,26 @@ export default function SignalementsList({
         ))}
 
         {!loading && viewMode === 'by_zone' && zoneEntries.map(([zid, sigs]) => (
-          <div key={zid} className="sig-zone-group">
-            <div className="sig-zone-header">
-              <MapPin size={13} />
-              <span>{zid === '__no_zone__' ? 'Zone non identifiée' : (zoneNameMap[zid] || zid)}</span>
-              <span className="sig-zone-count">{sigs.length}</span>
+          <div key={zid} style={{ marginBottom: 8 }}>
+            {/* Zone group header */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 12px 6px',
+              fontSize: '0.72rem', fontWeight: 700, color: '#64748b',
+              textTransform: 'uppercase', letterSpacing: '0.04em',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              marginBottom: 4,
+            }}>
+              <MapPin size={13} color="#10b981" />
+              <span>{zid === '__no_zone__' ? 'Zone non identifiee' : (zoneNameMap[zid] || zid)}</span>
+              <span style={{
+                marginLeft: 'auto',
+                background: 'rgba(59,130,246,0.12)', color: '#3b82f6',
+                fontSize: '0.68rem', padding: '1px 7px',
+                borderRadius: 10, fontWeight: 700,
+              }}>
+                {sigs.length}
+              </span>
             </div>
             {sigs.map((sig) => (
               <SigCard key={sig.id} sig={sig} selectedId={selectedId} onSelect={onSelect} />

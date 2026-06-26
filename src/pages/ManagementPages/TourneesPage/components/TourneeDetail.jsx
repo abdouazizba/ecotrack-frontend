@@ -20,11 +20,37 @@ function parseDuration(debut, fin) {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'pending',     label: 'Planifiée',  color: '#f59e0b', Icon: Clock },
+  { value: 'pending',     label: 'Planifiee',  color: '#f59e0b', Icon: Clock },
   { value: 'in_progress', label: 'En cours',   color: '#3b82f6', Icon: Clock },
-  { value: 'done',        label: 'Terminée',   color: '#10b981', Icon: CheckCircle },
-  { value: 'cancelled',   label: 'Annulée',    color: '#6b7280', Icon: XCircle },
+  { value: 'done',        label: 'Terminee',   color: '#10b981', Icon: CheckCircle },
+  { value: 'cancelled',   label: 'Annulee',    color: '#6b7280', Icon: XCircle },
 ];
+
+const actionBtn = (bg, color) => ({
+  display: 'flex', alignItems: 'center', gap: 6,
+  padding: '8px 14px', borderRadius: 8, border: 'none',
+  cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
+  background: bg, color, transition: 'opacity 0.15s',
+  fontFamily: 'inherit',
+});
+
+const sectionTitle = {
+  color: '#64748b', fontSize: '0.75rem', fontWeight: 700,
+  textTransform: 'uppercase', margin: 0, letterSpacing: 0.5,
+};
+
+const infoCard = {
+  background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '12px 14px',
+};
+
+const labelStyle = {
+  display: 'flex', alignItems: 'center', gap: 6,
+  marginBottom: 6, color: '#64748b', fontSize: '0.75rem',
+};
+
+const valueStyle = {
+  color: '#e2e8f0', fontSize: '0.92rem', fontWeight: 600, margin: 0,
+};
 
 function StatusDropdown({ current, onChange }) {
   const [open, setOpen] = useState(false);
@@ -34,8 +60,14 @@ function StatusDropdown({ current, onChange }) {
     <div style={{ position: 'relative' }}>
       <button
         onClick={() => setOpen(!open)}
-        className="tr-btn-status"
-        style={{ background: currentOpt.color + '18', color: currentOpt.color, gap: 6 }}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '8px 16px', borderRadius: 8,
+          border: `1px solid ${currentOpt.color}40`,
+          background: currentOpt.color + '18', color: currentOpt.color,
+          fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+          fontFamily: 'inherit', transition: 'all 0.2s',
+        }}
       >
         <currentOpt.Icon size={13} />
         {currentOpt.label}
@@ -54,7 +86,7 @@ function StatusDropdown({ current, onChange }) {
               onClick={() => {
                 setOpen(false);
                 if (opt.value === 'cancelled') {
-                  if (window.confirm('Annuler cette tournée ?')) onChange(opt.value);
+                  if (window.confirm('Annuler cette tournee ?')) onChange(opt.value);
                 } else {
                   onChange(opt.value);
                 }
@@ -63,7 +95,7 @@ function StatusDropdown({ current, onChange }) {
                 display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                 padding: '9px 14px', border: 'none', background: 'transparent',
                 color: opt.color, fontSize: '0.82rem', fontWeight: 500,
-                cursor: 'pointer', textAlign: 'left',
+                cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
               }}
               onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -98,29 +130,44 @@ function VehiculeInfo({ tournee, agents }) {
   const conducteurData = conducteurId ? agents.find((a) => String(a.id) === String(conducteurId)) : null;
   const conducteurName = conducteurData ? `${conducteurData.firstName} ${conducteurData.lastName}` : null;
 
-  if (loading) return <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '8px 0' }}>Chargement véhicule…</p>;
+  if (loading) return <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '8px 0' }}>Chargement vehicule...</p>;
   if (!vehicule) return null;
 
   return (
-    <div className="tr-team-section" style={{ marginTop: 0 }}>
-      <div className="tras-label">
-        <Truck size={16} />
-        <span>Véhicule assigné</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ ...labelStyle, marginBottom: 0 }}>
+        <Truck size={16} color="#8b5cf6" />
+        <span style={sectionTitle}>Vehicule assigne</span>
       </div>
-      <div className="tr-soutien-chips" style={{ marginTop: 6 }}>
-        <span className="tr-soutien-chip" style={{ background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.25)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          padding: '4px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
+          background: 'rgba(139,92,246,0.12)', color: '#8b5cf6',
+          border: '1px solid rgba(139,92,246,0.25)',
+        }}>
           <Truck size={12} />
           {vehicule.immatriculation}
-          {vehicule.marque && <span style={{ opacity: 0.7, marginLeft: 4 }}>— {[vehicule.marque, vehicule.modele].filter(Boolean).join(' ')}</span>}
+          {vehicule.marque && <span style={{ opacity: 0.7, marginLeft: 4 }}>- {[vehicule.marque, vehicule.modele].filter(Boolean).join(' ')}</span>}
         </span>
         {vehicule.type_vehicule && (
-          <span className="tr-soutien-chip" style={{ fontSize: '0.72rem' }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            padding: '4px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 500,
+            background: 'rgba(59,130,246,0.1)', color: '#3b82f6',
+            border: '1px solid rgba(59,130,246,0.2)',
+          }}>
             {vehicule.type_vehicule === 'BENNE' ? 'Benne' : vehicule.type_vehicule === 'COMPACTEUR' ? 'Compacteur' : vehicule.type_vehicule === 'UTILITAIRE' ? 'Utilitaire' : vehicule.type_vehicule === 'CAMION_GRUE' ? 'Camion grue' : vehicule.type_vehicule}
-            {vehicule.capacite_tonnes ? ` · ${vehicule.capacite_tonnes}t` : ''}
+            {vehicule.capacite_tonnes ? ` - ${vehicule.capacite_tonnes}t` : ''}
           </span>
         )}
         {conducteurName && (
-          <span className="tr-soutien-chip" style={{ fontSize: '0.72rem', opacity: 0.7 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            padding: '4px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 500,
+            background: 'rgba(255,255,255,0.05)', color: '#94a3b8',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}>
             Conducteur : {conducteurName}
           </span>
         )}
@@ -142,9 +189,15 @@ export default function TourneeDetail({
 }) {
   if (!tournee) {
     return (
-      <div className="tr-empty">
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', height: '100%', gap: 16,
+        color: '#94a3b8', padding: 40,
+      }}>
         <Package size={48} strokeWidth={1.2} />
-        <p>Sélectionnez une tournée ou créez-en une nouvelle</p>
+        <p style={{ fontSize: '0.92rem', textAlign: 'center', margin: 0 }}>
+          Selectionnez une tournee ou creez-en une nouvelle
+        </p>
       </div>
     );
   }
@@ -157,48 +210,103 @@ export default function TourneeDetail({
   const allDone      = total > 0 && closedCount === total;
 
   return (
-    <div className="tr-detail">
-      {/* suggestion complétion automatique */}
+    <div style={{
+      background: '#1e2433', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 14, padding: 24, overflowY: 'auto',
+      display: 'flex', flexDirection: 'column', gap: 18,
+    }}>
+      {/* completion suggestion banner */}
       {tournee.status === 'in_progress' && allDone && (
-        <div className="tr-completion-banner">
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '11px 16px', background: 'rgba(16,185,129,0.08)',
+          border: '1px solid rgba(16,185,129,0.25)', borderRadius: 10,
+          color: '#10b981', fontSize: '0.82rem', fontWeight: 600,
+        }}>
           <CheckCircle size={15} />
-          <span>Tous les signalements sont traités —</span>
-          <button onClick={() => onStatusChange(tournee.id, 'done')}>
-            Marquer comme terminée
+          <span>Tous les signalements sont traites --</span>
+          <button
+            onClick={() => onStatusChange(tournee.id, 'done')}
+            style={{
+              marginLeft: 'auto', padding: '6px 14px',
+              background: '#10b981', color: '#fff', border: 'none',
+              borderRadius: 7, fontSize: '0.78rem', fontWeight: 700,
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'opacity 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '0.88'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+          >
+            Marquer comme terminee
           </button>
         </div>
       )}
 
       {/* header */}
-      <div className="tr-header">
-        <div className="trh-left">
-          <h2>{tournee.titre}</h2>
-          <div className="trh-meta">
-            <span><MapPin size={14} /> {tournee.zone_nom || '—'}</span>
-            <span><Calendar size={14} /> {tournee.date_prevue || '—'}</span>
-            <span className="t-badge" style={{ color: statusMeta.color, background: statusMeta.bg }}>
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+        gap: 16, paddingBottom: 20,
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <div>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#e2e8f0', margin: '0 0 10px 0' }}>
+            {tournee.titre}
+          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.82rem', color: '#94a3b8' }}>
+              <MapPin size={14} color="#64748b" /> {tournee.zone_nom || '-'}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.82rem', color: '#94a3b8' }}>
+              <Calendar size={14} color="#64748b" /> {tournee.date_prevue || '-'}
+            </span>
+            <span style={{
+              display: 'inline-block', padding: '3px 10px', borderRadius: 20,
+              fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+              color: statusMeta.color, background: statusMeta.bg,
+            }}>
               {statusMeta.label}
             </span>
           </div>
         </div>
-        <div className="trh-actions">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <StatusDropdown
             current={tournee.status}
             onChange={(newStatus) => onStatusChange(tournee.id, newStatus)}
           />
           {onEditClick && (
-            <button className="tr-btn-edit" onClick={() => onEditClick(tournee)} title="Modifier la tournée">
+            <button
+              onClick={() => onEditClick(tournee)}
+              title="Modifier la tournee"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 36, height: 36, borderRadius: 8, cursor: 'pointer',
+                background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.25)',
+                color: '#3b82f6', transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(59,130,246,0.2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(59,130,246,0.12)'}
+            >
               <Edit2 size={15} />
             </button>
           )}
-          <button className="tr-btn-delete" onClick={() => onDelete(tournee.id)} title="Supprimer la tournée">
+          <button
+            onClick={() => onDelete(tournee.id)}
+            title="Supprimer la tournee"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: 8, cursor: 'pointer',
+              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+              color: '#ef4444', transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.18)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+          >
             <Trash2 size={16} />
           </button>
         </div>
       </div>
 
-      {/* équipe (lecture seule — assignée à la création) */}
-      <div className="tr-team-section">
+      {/* team section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {(() => {
           const allAgents = tournee.agents || [];
           const conducteurs = allAgents.filter((a) => a.role === 'CONDUCTEUR');
@@ -210,113 +318,177 @@ export default function TourneeDetail({
 
           return (
             <>
-              <div className="tr-agent-section">
-                <div className="tras-label">
-                  <UserCheck size={16} />
-                  <span>Équipe assignée</span>
-                </div>
-                {allAgents.length === 0 ? (
-                  <p style={{ color: '#64748b', fontSize: '0.84rem', margin: '6px 0 0' }}>
-                    Aucun agent — modifiez la tournée pour assigner une équipe
-                  </p>
-                ) : (
-                  <div className="tr-soutien-chips" style={{ marginTop: 6 }}>
-                    {conducteurs.map((a) => (
-                      <span key={a.id} className="tr-soutien-chip" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}>
-                        <UserCheck size={12} /> {resolveName(a)} <span style={{ fontSize: '0.68rem', opacity: 0.7 }}>responsable</span>
-                      </span>
-                    ))}
-                    {soutien.map((a) => (
-                      <span key={a.id} className="tr-soutien-chip">
-                        {resolveName(a)} <span style={{ fontSize: '0.68rem', opacity: 0.7 }}>soutien</span>
-                      </span>
-                    ))}
-                  </div>
-                )}
+              <div style={{ ...labelStyle, marginBottom: 0 }}>
+                <UserCheck size={16} color="#10b981" />
+                <span style={sectionTitle}>Equipe assignee</span>
               </div>
+              {allAgents.length === 0 ? (
+                <p style={{ color: '#64748b', fontSize: '0.84rem', margin: '6px 0 0' }}>
+                  Aucun agent -- modifiez la tournee pour assigner une equipe
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                  {conducteurs.map((a) => (
+                    <span key={a.id} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      padding: '4px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
+                      background: 'rgba(59,130,246,0.15)', color: '#3b82f6',
+                      border: '1px solid rgba(59,130,246,0.3)',
+                    }}>
+                      <UserCheck size={12} /> {resolveName(a)} <span style={{ fontSize: '0.68rem', opacity: 0.7 }}>responsable</span>
+                    </span>
+                  ))}
+                  {soutien.map((a) => (
+                    <span key={a.id} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      padding: '4px 10px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 500,
+                      background: 'rgba(255,255,255,0.05)', color: '#94a3b8',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                    }}>
+                      {resolveName(a)} <span style={{ fontSize: '0.68rem', opacity: 0.7 }}>soutien</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </>
           );
         })()}
       </div>
 
-      {/* véhicule */}
+      {/* vehicle */}
       <VehiculeInfo tournee={tournee} agents={agents} />
 
-      {/* suivi temps */}
+      {/* time tracking */}
       {(tournee.heure_debut || tournee.heure_fin) && (
-        <div className="tr-time-section">
-          <Timer size={15} />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+          background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)',
+          borderRadius: 10, padding: '10px 16px', fontSize: '0.82rem',
+        }}>
+          <Timer size={15} color="#10b981" />
           {tournee.heure_debut && (
-            <span>Début : <strong>{tournee.heure_debut}</strong></span>
+            <span style={{ color: '#94a3b8' }}>Debut : <strong style={{ color: '#e2e8f0' }}>{tournee.heure_debut}</strong></span>
           )}
           {tournee.heure_fin && (
-            <span>Fin : <strong>{tournee.heure_fin}</strong></span>
+            <span style={{ color: '#94a3b8' }}>Fin : <strong style={{ color: '#e2e8f0' }}>{tournee.heure_fin}</strong></span>
           )}
           {(() => {
             const dur = parseDuration(tournee.heure_debut, tournee.heure_fin);
-            return dur ? <span className="tr-duration">Durée : <strong>{dur}</strong></span> : null;
+            return dur ? <span style={{ marginLeft: 'auto', fontWeight: 600, color: '#10b981' }}>Duree : <strong>{dur}</strong></span> : null;
           })()}
         </div>
       )}
 
-      {/* barre de progression */}
+      {/* progress bar */}
       {total > 0 && (
-        <div className="tr-progress">
-          <div className="tr-progress-label">
+        <div style={{
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 12, padding: '14px 16px',
+        }}>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: 8,
+          }}>
             <span>Traitement</span>
             <span>{closedCount} / {total} ({progress}%)</span>
           </div>
-          <div className="tr-progress-bar">
-            <div
-              className="tr-progress-fill"
-              style={{ width: `${progress}%`, background: progress === 100 ? '#10b981' : '#3b82f6' }}
-            />
+          <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 10, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', borderRadius: 10,
+              width: `${progress}%`,
+              background: progress === 100 ? '#10b981' : '#3b82f6',
+              transition: 'width 0.4s ease, background 0.3s',
+            }} />
           </div>
         </div>
       )}
 
-      {/* signalements */}
-      <div className="tr-sigs-header">
-        <h3>
-          <AlertTriangle size={16} />
+      {/* signalements header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h3 style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: '0.92rem', fontWeight: 700, color: '#e2e8f0', margin: 0,
+        }}>
+          <AlertTriangle size={16} color="#f97316" />
           Signalements ({total})
         </h3>
-        <button className="tl-btn-new" onClick={onAddSigClick}>
+        <button
+          onClick={onAddSigClick}
+          style={actionBtn('rgba(16,185,129,0.12)', '#10b981')}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.88'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+        >
           <Plus size={14} /> Ajouter
         </button>
       </div>
 
       {sigsLoading ? (
-        <div className="tr-sigs-empty">
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Chargement des signalements…</p>
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          gap: 12, padding: '40px 20px', color: '#94a3b8',
+          border: '2px dashed rgba(255,255,255,0.06)', borderRadius: 12,
+        }}>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', textAlign: 'center', margin: 0 }}>
+            Chargement des signalements...
+          </p>
         </div>
       ) : total === 0 ? (
-        <div className="tr-sigs-empty">
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          gap: 12, padding: '40px 20px', color: '#94a3b8',
+          border: '2px dashed rgba(255,255,255,0.06)', borderRadius: 12,
+        }}>
           <Package size={32} strokeWidth={1.2} />
-          <p>Aucun signalement — cliquez sur Ajouter pour en inclure</p>
+          <p style={{ fontSize: '0.82rem', textAlign: 'center', margin: 0 }}>
+            Aucun signalement -- cliquez sur Ajouter pour en inclure
+          </p>
         </div>
       ) : (
-        <div className="tr-sigs-list">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {sigs.map((sig) => {
             const priority = PRIORITY_META[sig.priority] || PRIORITY_META.medium;
             return (
-              <div key={sig.id} className="sig-card">
-                <div className="sig-card-top">
-                  <div className="sig-info">
-                    <span className="sig-type">{TYPE_LABELS[sig.type] || sig.type}</span>
-                    <span className="t-badge" style={{ color: priority.color, background: `${priority.color}18` }}>
+              <div key={sig.id} style={{
+                ...infoCard,
+                border: '1px solid rgba(255,255,255,0.06)',
+                transition: 'box-shadow 0.2s',
+              }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center',
+                  justifyContent: 'space-between', marginBottom: 8,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#e2e8f0' }}>
+                      {TYPE_LABELS[sig.type] || sig.type}
+                    </span>
+                    <span style={{
+                      display: 'inline-block', padding: '3px 10px', borderRadius: 20,
+                      fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+                      color: priority.color, background: `${priority.color}18`,
+                    }}>
                       {priority.label}
                     </span>
                   </div>
                   <button
-                    className="sig-btn-remove"
                     onClick={() => onRemoveSignalement(sig.id)}
                     title="Retirer ce signalement"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 28, height: 28, background: 'transparent',
+                      border: 'none', borderRadius: 6, color: '#94a3b8',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}
                   >
                     <X size={14} />
                   </button>
                 </div>
-                {sig.description && <p className="sig-desc">{sig.description}</p>}
+                {sig.description && (
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                    {sig.description}
+                  </p>
+                )}
               </div>
             );
           })}

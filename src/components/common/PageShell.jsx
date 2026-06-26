@@ -50,7 +50,7 @@ export default function PageShell({
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         {Icon && <Icon size={22} color="#3b82f6" />}
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+        <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#10b981', margin: 0, letterSpacing: '-0.3px' }}>
           {title}{' '}
           {count != null && (
             <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}>({count})</span>
@@ -104,8 +104,8 @@ export default function PageShell({
               value={search || ''}
               onChange={(e) => onSearchChange(e.target.value)}
               style={{
-                width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 8, color: '#e2e8f0', fontSize: '0.82rem', padding: '7px 12px 7px 32px',
+                width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)',
+                borderRadius: 8, color: '#f1f5f9', fontSize: '0.85rem', padding: '9px 12px 9px 34px',
                 outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
               }}
             />
