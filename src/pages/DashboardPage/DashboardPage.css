@@ -49,30 +49,53 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 0;
   animation: fadeInUp 0.6s ease-out 0.1s both;
 }
 
+.stats-grid .perf-hero {
+  grid-column: span 1;
+  min-height: 180px;
+}
+
+.stats-grid .perf-hero .echarts-stat-card,
+.stats-grid .perf-hero {
+  min-height: 180px;
+}
+
+.stats-grid .card-wide {
+  grid-column: span 2;
+}
+
 @media (max-width: 1400px) {
   .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 12px;
+  }
+  .stats-grid .card-wide {
+    grid-column: span 2;
+  }
+  .stats-grid .perf-hero {
+    min-height: 150px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .stats-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
+  }
+  .stats-grid .card-wide {
+    grid-column: span 1;
   }
 }
 
@@ -553,12 +576,6 @@
     border-radius: var(--radius-xl);
     overflow-y: auto;
   }
-}
-
-/* Mise à jour du dashboard-main pour accommoder la toolbar */
-.dashboard-main {
-  margin-top: 150px;
-  transition: margin-right var(--transition-base);
 }
 
 .dashboard-main.with-calendar {
