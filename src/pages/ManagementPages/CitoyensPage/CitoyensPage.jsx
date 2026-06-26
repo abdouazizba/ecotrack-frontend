@@ -107,7 +107,7 @@ const s = {
     cursor: 'default',
   },
   cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  cardName: { fontSize: 16, fontWeight: 600, margin: 0 },
+  cardName: { fontSize: 16, fontWeight: 600, margin: 0, color: '#ffffff' },
   cardEmail: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
   activeBadge: (active) => ({
     fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 10,

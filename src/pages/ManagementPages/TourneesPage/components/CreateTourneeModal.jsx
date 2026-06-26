@@ -31,7 +31,7 @@ export default function CreateTourneeModal({
           ? {
               titre:             initialData.titre      || '',
               selected_zone_ids: initialData.zone_id ? [initialData.zone_id] : [],
-              date_prevue:       initialData.date_prevue || '',
+              date_prevue:       initialData.date_prevue ? initialData.date_prevue.split('T')[0] : '',
               heure_debut:       initialData.heure_debut || '',
               agent_id:          initialData.agent_id    || '',
               vehicule_id:       initialData.vehicule_id || '',
