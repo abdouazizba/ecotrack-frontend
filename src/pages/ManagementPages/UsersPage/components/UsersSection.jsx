@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Users } from 'lucide-react';
 import { getUsers, createUser, updateUser, deleteUser } from '../../../../services/api';
 import useAuthStore from '../../../../store/authStore';
+import PageShell from '../../../../components/common/PageShell';
 import UsersList from './UsersList';
 import UserDetail from './UserDetail';
 import UserForm from './UserForm';
@@ -90,8 +92,41 @@ export default function UsersSection() {
     setShowForm(true);
   };
 
+  const adminCount = users.filter((u) => u.role === 'admin' || u.role === 'super_admin').length;
+  const agentCount = users.filter((u) => u.role === 'agent').length;
+
+  const statsArr = [
+    { label: 'Total', value: users.length, color: '#3b82f6' },
+    { label: 'Admins', value: adminCount, color: '#7c3aed' },
+    { label: 'Agents', value: agentCount, color: '#0284c7' },
+  ];
+
+  const filtersNode = (
+    <>
+      {[['all', 'Tous'], ['admin', 'Admin'], ['agent', 'Agent']].map(([key, label]) => (
+        <button key={key} onClick={() => setFilter(key)} style={{
+          padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
+          fontSize: '0.78rem', fontWeight: 600,
+          background: filter === key ? '#3b82f6' : 'rgba(255,255,255,0.06)',
+          color: filter === key ? '#fff' : '#94a3b8', fontFamily: 'inherit',
+        }}>{label}</button>
+      ))}
+    </>
+  );
+
   return (
-    <div className="usr-page">
+    <PageShell
+      icon={Users}
+      title="Utilisateurs"
+      count={users.length}
+      stats={statsArr}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder="Rechercher un utilisateur..."
+      onCreateClick={() => { setEditingUser(null); setShowForm(true); }}
+      createLabel="Nouveau"
+      filters={filtersNode}
+    >
       {error && (
         <div className="usr-error">
           {error}
@@ -99,17 +134,13 @@ export default function UsersSection() {
         </div>
       )}
 
-      <div className="usr-split">
+      <div className="usr-split" style={{ flex: 1, minHeight: 0 }}>
         <UsersList
           users={filtered}
           selectedId={selectedId}
-          filter={filter}
-          search={search}
           loading={loading}
           onSelect={setSelectedId}
-          onFilterChange={setFilter}
-          onSearchChange={setSearch}
-          onCreateClick={() => { setEditingUser(null); setShowForm(true); }}
+          hideFilters
         />
 
         <div className="usr-right">
@@ -129,6 +160,6 @@ export default function UsersSection() {
         onClose={() => { setShowForm(false); setEditingUser(null); }}
         onSubmit={handleFormSubmit}
       />
-    </div>
+    </PageShell>
   );
 }

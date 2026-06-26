@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Users, Search, Trophy, Star,
-  ChevronLeft, ChevronRight, Filter, AlertCircle,
+  Users, Trophy, Star,
+  ChevronLeft, ChevronRight, AlertCircle,
 } from 'lucide-react';
 import { getCitoyens } from '../../../services/api';
+import PageShell from '../../../components/common/PageShell';
 
 const PAGE_SIZE = 20;
 const DEBOUNCE_MS = 300;
@@ -285,79 +286,52 @@ export default function CitoyensPage() {
     return btns;
   };
 
+  const statsArr = [
+    { label: 'Total', value: total, color: colors.accent },
+    { label: 'Actifs (page)', value: stats.actifs, color: colors.blue },
+    { label: 'Score moyen', value: stats.scoreMoyen, color: colors.gold },
+    { label: 'Signalements', value: stats.totalSignalements, color: colors.purple },
+  ];
+
+  const filtersNode = (
+    <>
+      {['all', 'active', 'inactive'].map((f) => (
+        <button key={f} onClick={() => setStatusFilter(f)} style={{
+          padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
+          fontSize: '0.78rem', fontWeight: 600, fontFamily: 'inherit',
+          background: statusFilter === f ? '#3b82f6' : 'rgba(255,255,255,0.06)',
+          color: statusFilter === f ? '#fff' : '#94a3b8',
+        }}>
+          {f === 'all' ? 'Tous' : f === 'active' ? 'Actifs' : 'Inactifs'}
+        </button>
+      ))}
+      <select value={sort} onChange={(e) => handleSort(e.target.value)} style={{
+        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px',
+        cursor: 'pointer', marginLeft: 'auto',
+      }}>
+        <option value="score">Trier par Score</option>
+        <option value="signalements">Trier par Signalements</option>
+        <option value="date">Trier par Date inscription</option>
+      </select>
+    </>
+  );
+
   return (
-    <div style={s.page}>
-      {/* ── Header ── */}
-      <div style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.headerIcon}>
-            <Users size={22} color={colors.accent} />
-          </div>
-          <div>
-            <h1 style={s.title}>
-              Citoyens
-              <span style={s.badge}>{total}</span>
-            </h1>
-          </div>
-        </div>
-        <div style={s.searchBox}>
-          <Search size={16} color={colors.textMuted} />
-          <input
-            style={s.searchInput}
-            placeholder="Rechercher par nom, email..."
-            value={search}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* ── Stats row ── */}
-      <div style={s.statsRow}>
-        <div style={s.statBox}>
-          <div style={s.statLabel}>Total citoyens</div>
-          <div style={{ ...s.statValue, color: colors.accent }}>{total}</div>
-        </div>
-        <div style={s.statBox}>
-          <div style={s.statLabel}>Actifs (page)</div>
-          <div style={{ ...s.statValue, color: colors.blue }}>{stats.actifs}</div>
-        </div>
-        <div style={s.statBox}>
-          <div style={s.statLabel}>Score moyen (page)</div>
-          <div style={{ ...s.statValue, color: colors.gold }}>{stats.scoreMoyen}</div>
-        </div>
-        <div style={s.statBox}>
-          <div style={s.statLabel}>Signalements (page)</div>
-          <div style={{ ...s.statValue, color: colors.purple }}>{stats.totalSignalements}</div>
-        </div>
-      </div>
-
+    <PageShell
+      icon={Users}
+      title="Citoyens"
+      count={total}
+      stats={statsArr}
+      search={search}
+      onSearchChange={handleSearch}
+      searchPlaceholder="Rechercher par nom, email..."
+      filters={filtersNode}
+    >
       {/* ── Main layout ── */}
       <div style={s.mainLayout}>
         {/* Left: cards */}
         <div style={s.leftPanel}>
-          {/* Toolbar */}
-          <div style={s.toolbar}>
-            <Filter size={16} color={colors.textMuted} />
-            {['all', 'active', 'inactive'].map((f) => (
-              <button
-                key={f}
-                style={s.filterBtn(statusFilter === f)}
-                onClick={() => setStatusFilter(f)}
-              >
-                {f === 'all' ? 'Tous' : f === 'active' ? 'Actifs' : 'Inactifs'}
-              </button>
-            ))}
-
-            <select
-              style={s.sortSelect}
-              value={sort}
-              onChange={(e) => handleSort(e.target.value)}
-            >
-              <option value="score">Trier par Score</option>
-              <option value="signalements">Trier par Signalements</option>
-              <option value="date">Trier par Date inscription</option>
-            </select>
-          </div>
 
           {/* Loading / Error */}
           {loading && (
@@ -494,6 +468,6 @@ export default function CitoyensPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

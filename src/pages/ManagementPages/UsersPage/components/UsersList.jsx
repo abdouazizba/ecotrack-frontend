@@ -42,6 +42,7 @@ export { UserAvatar };
 export default function UsersList({
   users, selectedId, filter, search, loading,
   onSelect, onFilterChange, onSearchChange, onCreateClick,
+  hideFilters = false,
 }) {
   const [page, setPage] = useState(1);
   useEffect(() => { setPage(1); }, [users]);
@@ -51,33 +52,37 @@ export default function UsersList({
 
   return (
     <div className="usr-left">
-      <div className="usr-left-header">
-        <h2>Utilisateurs</h2>
-        <button className="usr-btn-new" onClick={onCreateClick}>
-          <Plus size={15} /> Nouveau
-        </button>
-      </div>
+      {!hideFilters && (
+        <>
+          <div className="usr-left-header">
+            <h2>Utilisateurs</h2>
+            <button className="usr-btn-new" onClick={onCreateClick}>
+              <Plus size={15} /> Nouveau
+            </button>
+          </div>
 
-      <div className="usr-search">
-        <input
-          type="text"
-          placeholder="Rechercher…"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
+          <div className="usr-search">
+            <input
+              type="text"
+              placeholder="Rechercher…"
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
 
-      <div className="usr-tabs">
-        {ROLE_FILTERS.map(([key, label]) => (
-          <button
-            key={key}
-            className={`usr-tab ${filter === key ? 'active' : ''}`}
-            onClick={() => onFilterChange(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+          <div className="usr-tabs">
+            {ROLE_FILTERS.map(([key, label]) => (
+              <button
+                key={key}
+                className={`usr-tab ${filter === key ? 'active' : ''}`}
+                onClick={() => onFilterChange(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="usr-list">
         {loading && <p className="usr-empty">Chargement…</p>}
