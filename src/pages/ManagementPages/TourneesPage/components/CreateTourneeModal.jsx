@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle, MapPin, UserCheck, Users, Clock, Truck } from 'lucide-react';
 import ModalBrandPanel from '../../../../components/common/ModalBrandPanel';
+import SearchableSelect from '../../../../components/common/SearchableSelect';
 import ZoneMapPicker from './ZoneMapPicker';
 
 const genTag = () => {
@@ -162,23 +163,18 @@ export default function CreateTourneeModal({
                 <UserCheck size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                 Agent responsable
               </label>
-              <select
+              <SearchableSelect
                 value={form.agent_id}
-                onChange={(e) => {
-                  const newId = e.target.value;
-                  // retirer du soutien si sélectionné comme responsable
+                options={agents.map((a) => ({ value: a.id, label: `${a.firstName} ${a.lastName}` }))}
+                onChange={(newId) => {
                   setForm((prev) => ({
                     ...prev,
                     agent_id: newId,
                     support_agent_ids: prev.support_agent_ids.filter((id) => id !== newId),
                   }));
                 }}
-              >
-                <option value="">— Non assigné —</option>
-                {agents.map((a) => (
-                  <option key={a.id} value={a.id}>{a.firstName} {a.lastName}</option>
-                ))}
-              </select>
+                placeholder="— Non assigné —"
+              />
               {conflict && conflictAgent && (
                 <div className="t-conflict-warning">
                   <AlertTriangle size={13} />
@@ -228,20 +224,17 @@ export default function CreateTourneeModal({
                   <Truck size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                   Véhicule
                 </label>
-                <select
+                <SearchableSelect
                   value={form.vehicule_id}
-                  onChange={(e) => setForm({ ...form, vehicule_id: e.target.value })}
-                >
-                  <option value="">— Non assigné —</option>
-                  {vehicules
+                  options={vehicules
                     .filter((v) => v.statut === 'ACTIF' || v.id === form.vehicule_id)
-                    .map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.immatriculation} — {[v.marque, v.modele].filter(Boolean).join(' ')}
-                        {v.type_vehicule ? ` (${TYPE_VEHICULE_LABELS[v.type_vehicule] || v.type_vehicule})` : ''}
-                      </option>
-                    ))}
-                </select>
+                    .map((v) => ({
+                      value: v.id,
+                      label: `${v.immatriculation} — ${[v.marque, v.modele].filter(Boolean).join(' ')}${v.type_vehicule ? ` (${TYPE_VEHICULE_LABELS[v.type_vehicule] || v.type_vehicule})` : ''}`,
+                    }))}
+                  onChange={(val) => setForm({ ...form, vehicule_id: val })}
+                  placeholder="— Non assigné —"
+                />
               </div>
             )}
 
