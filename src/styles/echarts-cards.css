@@ -48,7 +48,7 @@
 .stat-card-title {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #666;
+  color: #475569;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -93,7 +93,7 @@
 
 .stat-card-subtitle {
   font-size: 0.8rem;
-  color: #999;
+  color: #64748b;
   font-weight: 500;
 }
 

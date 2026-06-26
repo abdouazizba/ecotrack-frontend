@@ -119,6 +119,39 @@ body {
 }
 
 /* ================================================================
+   LIGHT BACKGROUND CONTRAST FIX
+   Force dark text on all light-background containers (modals, forms, charts)
+   ================================================================ */
+
+.cap-modal, .t-modal, .modal-right,
+.chart-card-container, .chart-wrapper,
+.echarts-stat-card,
+.usr-page, .usr-left, .usr-right,
+.cap-modal-form, .t-modal-form {
+  color: #1e293b;
+}
+
+.cap-modal input, .cap-modal select, .cap-modal label,
+.t-modal input, .t-modal select, .t-modal label,
+.modal-right input, .modal-right select, .modal-right label,
+.usr-page input, .usr-page select, .usr-page label {
+  color: #1e293b;
+}
+
+.cap-modal option, .t-modal option, .modal-right option {
+  color: #1e293b;
+  background: #fff;
+}
+
+.cap-modal h3, .t-modal h3, .modal-right h3 {
+  color: #1e293b;
+}
+
+.cap-modal .cap-modal-close, .t-modal .t-modal-close {
+  color: #64748b;
+}
+
+/* ================================================================
    SCROLLBAR STYLING
    ================================================================ */
 
