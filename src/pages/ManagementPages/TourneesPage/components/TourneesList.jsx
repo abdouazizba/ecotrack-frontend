@@ -1,37 +1,10 @@
 import React from 'react';
-import { Plus, MapPin, Calendar, User, ClipboardList, Clock } from 'lucide-react';
+import { MapPin, Calendar, User, ClipboardList, Clock } from 'lucide-react';
 import { TOURNEE_STATUS } from '../utils/constants';
 
-export default function TourneesList({ tournees, selectedId, filter, loading, onSelect, onFilterChange, onCreateClick }) {
-  const FILTERS = [
-    ['all', 'Toutes'],
-    ['today', "Aujourd'hui"],
-    ['pending', 'À planifier'],
-    ['in_progress', 'En cours'],
-    ['done', 'Terminées'],
-  ];
-
+export default function TourneesList({ tournees, selectedId, filter, loading, onSelect }) {
   return (
     <div className="tournees-left">
-      <div className="tl-header">
-        <h2>Tournées</h2>
-        <button className="tl-btn-new" onClick={onCreateClick}>
-          <Plus size={16} /> Nouvelle
-        </button>
-      </div>
-
-      <div className="tl-tabs">
-        {FILTERS.map(([key, label]) => (
-          <button
-            key={key}
-            className={`tl-tab ${filter === key ? 'active' : ''}`}
-            onClick={() => onFilterChange(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
       <div className="tl-list">
         {loading && <p className="tl-empty">Chargement…</p>}
         {!loading && tournees.length === 0 && (

@@ -83,6 +83,7 @@ export default function SignalementsList({
   priorityFilter = 'all', search = '',
   zones = [], containers = [],
   onSelect, onFilterChange, onPriorityChange, onSearchChange,
+  hideFilters = false,
 }) {
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState('list');
@@ -148,39 +149,43 @@ export default function SignalementsList({
         </div>
       </div>
 
-      <div className="sig-tabs">
-        {FILTERS.map(([key, label]) => (
-          <button
-            key={key}
-            className={`sig-tab ${filter === key ? 'active' : ''}`}
-            onClick={() => onFilterChange(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {!hideFilters && (
+        <>
+          <div className="sig-tabs">
+            {FILTERS.map(([key, label]) => (
+              <button
+                key={key}
+                className={`sig-tab ${filter === key ? 'active' : ''}`}
+                onClick={() => onFilterChange(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-      {/* Recherche + filtre priorité */}
-      <div style={{ display: 'flex', gap: 8, padding: '0 12px 10px', flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Rechercher…"
-          value={search}
-          onChange={(e) => onSearchChange?.(e.target.value)}
-          style={{ flex: 1, minWidth: 120, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, color: '#e2e8f0', fontSize: '0.8rem', padding: '5px 10px', outline: 'none' }}
-        />
-        <select
-          value={priorityFilter}
-          onChange={(e) => onPriorityChange?.(e.target.value)}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, color: '#94a3b8', fontSize: '0.78rem', padding: '5px 8px', cursor: 'pointer' }}
-        >
-          <option value="all">Toutes priorités</option>
-          <option value="critical">Critique</option>
-          <option value="high">Haute</option>
-          <option value="medium">Normale</option>
-          <option value="low">Basse</option>
-        </select>
-      </div>
+          {/* Recherche + filtre priorité */}
+          <div style={{ display: 'flex', gap: 8, padding: '0 12px 10px', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              placeholder="Rechercher…"
+              value={search}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              style={{ flex: 1, minWidth: 120, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, color: '#e2e8f0', fontSize: '0.8rem', padding: '5px 10px', outline: 'none' }}
+            />
+            <select
+              value={priorityFilter}
+              onChange={(e) => onPriorityChange?.(e.target.value)}
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, color: '#94a3b8', fontSize: '0.78rem', padding: '5px 8px', cursor: 'pointer' }}
+            >
+              <option value="all">Toutes priorités</option>
+              <option value="critical">Critique</option>
+              <option value="high">Haute</option>
+              <option value="medium">Normale</option>
+              <option value="low">Basse</option>
+            </select>
+          </div>
+        </>
+      )}
 
       <div className="sig-list">
         {loading && <p className="sig-empty">Chargement…</p>}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Box, Plus, Edit2, Trash2, Search, MapPin, Calendar,
+  Box, Edit2, Trash2, MapPin, Calendar,
   ChevronLeft, ChevronRight, X, Gauge, Layers, TrendingUp,
   Cpu, Thermometer, Wifi, Battery, AlertTriangle,
 } from 'lucide-react';
@@ -10,7 +10,10 @@ import {
   getZones, getCapteurs, getSignalementsContainer, getMesuresConteneur,
 } from '../../../services/api';
 import { enrichContainersWithSensors } from '../../../services/transformers';
+import PageShell from '../../../components/common/PageShell';
 import ContainerForm from './components/ContainerForm';
+
+const REFRESH_INTERVAL = 30000;
 
 /* ── Meta maps ────────────────────────────────────────────────────── */
 const STATUS_META = {
@@ -178,6 +181,9 @@ export default function ContainersPage() {
   const [page, setPage]             = useState(1);
   const [selected, setSelected]     = useState(null);
 
+  const [tab, setTab]                           = useState('monitoring');
+  const [countdown, setCountdown]               = useState(REFRESH_INTERVAL / 1000);
+
   const [showForm, setShowForm]               = useState(false);
   const [editingContainer, setEditingContainer] = useState(null);
 
@@ -195,6 +201,7 @@ export default function ContainersPage() {
       setCapteurs(capList);
       setContainers(enrichContainersWithSensors(rawContainers, capList));
       setZones(Array.isArray(zData) ? zData : zData?.data || []);
+      setCountdown(REFRESH_INTERVAL / 1000);
       setError(null);
     } catch {
       setError('Erreur lors du chargement des donnees');
@@ -204,6 +211,18 @@ export default function ContainersPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Auto-refresh in monitoring mode
+  useEffect(() => {
+    if (tab !== 'monitoring') return;
+    const iv = setInterval(load, REFRESH_INTERVAL);
+    return () => clearInterval(iv);
+  }, [load, tab]);
+  useEffect(() => {
+    if (tab !== 'monitoring') return;
+    const iv = setInterval(() => setCountdown(c => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(iv);
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load detail sub-data when selection changes
   useEffect(() => {
@@ -300,19 +319,45 @@ export default function ContainersPage() {
   /* ══════════════════════════════════════════════════════════════════
      RENDER
      ══════════════════════════════════════════════════════════════════ */
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 20, gap: 16 }}>
-
-      {/* ── Header ─────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <Box size={22} color="#10b981" />
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0, flex: 1 }}>
-          Conteneurs <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}>({filtered.length})</span>
-        </h1>
-        <button onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, background: '#10b981', color: '#fff' }}>
-          <Plus size={16} /> Nouveau conteneur
+  /* ── Filters ReactNode ──────────────────────────────────────────── */
+  const filtersNode = (
+    <>
+      {STATUS_FILTERS.map(([key, label]) => (
+        <button key={key} onClick={() => setFilter(key)}
+          style={{ padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: filter === key ? '#10b981' : 'rgba(255,255,255,0.06)', color: filter === key ? '#fff' : '#94a3b8', transition: 'all 0.15s' }}>
+          {label}
         </button>
-      </div>
+      ))}
+      <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
+        {TYPE_FILTERS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+      </select>
+    </>
+  );
+
+  return (
+    <PageShell
+      icon={Box}
+      title="Conteneurs"
+      count={filtered.length}
+      hasTabs
+      activeTab={tab}
+      onTabChange={(t) => { setTab(t); setSelected(null); }}
+      stats={[
+        { label: 'Total conteneurs',    value: stats.total,       color: '#3b82f6' },
+        { label: 'En service',           value: stats.enService,   color: '#10b981' },
+        { label: 'Remplissage critique', value: stats.critique,    color: '#ef4444' },
+        { label: 'En maintenance',       value: stats.maintenance, color: '#f59e0b' },
+      ]}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder="Rechercher un conteneur..."
+      onCreateClick={openCreate}
+      createLabel="Nouveau conteneur"
+      refreshCountdown={countdown}
+      onRefresh={() => { setLoading(true); load(); }}
+      filters={filtersNode}
+    >
 
       {/* ── Error ──────────────────────────────────────────────────── */}
       {error && (
@@ -321,44 +366,6 @@ export default function ContainersPage() {
           <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer' }}><X size={14} /></button>
         </div>
       )}
-
-      {/* ── Stats row ──────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {[
-          { label: 'Total conteneurs',      value: stats.total,       color: '#3b82f6' },
-          { label: 'En service',             value: stats.enService,   color: '#10b981' },
-          { label: 'Remplissage critique',   value: stats.critique,    color: '#ef4444' },
-          { label: 'En maintenance',         value: stats.maintenance, color: '#f59e0b' },
-        ].map(s => (
-          <div key={s.label} style={{ background: '#1e2433', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, minWidth: 120 }}>
-            <span style={{ fontSize: '1.3rem', fontWeight: 800, color: s.color }}>{s.value}</span>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Filters ────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: '1 1 200px' }}>
-          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-          <input
-            placeholder="Rechercher un conteneur..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e2e8f0', fontSize: '0.82rem', padding: '7px 12px 7px 32px', outline: 'none', boxSizing: 'border-box' }}
-          />
-        </div>
-        {STATUS_FILTERS.map(([key, label]) => (
-          <button key={key} onClick={() => setFilter(key)}
-            style={{ padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: filter === key ? '#10b981' : 'rgba(255,255,255,0.06)', color: filter === key ? '#fff' : '#94a3b8', transition: 'all 0.15s' }}>
-            {label}
-          </button>
-        ))}
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
-          {TYPE_FILTERS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-        </select>
-      </div>
 
       {/* ── Dual panel ─────────────────────────────────────────────── */}
       <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0 }}>
@@ -636,6 +643,6 @@ export default function ContainersPage() {
       />
 
       <style>{`@keyframes slideIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }`}</style>
-    </div>
+    </PageShell>
   );
 }

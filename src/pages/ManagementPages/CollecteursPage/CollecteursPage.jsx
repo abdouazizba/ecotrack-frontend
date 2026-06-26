@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Truck, Plus, Edit2, Trash2, Gauge, Wrench, Search, Calendar,
+  Truck, Edit2, Trash2, Gauge, Wrench, Calendar,
   ChevronLeft, ChevronRight, X, User,
 } from 'lucide-react';
 import { getVehicules, createVehicule, updateVehicule, deleteVehicule, getAgents } from '../../../services/api';
+import PageShell from '../../../components/common/PageShell';
 import ModalBrandPanel from '../../../components/common/ModalBrandPanel';
 import SearchableSelect from '../../../components/common/SearchableSelect';
 
@@ -21,8 +22,10 @@ const TYPE_META = {
 };
 
 const PAGE_SIZE = 12;
+const REFRESH_INTERVAL = 30000;
 
 export default function VehiculesPage() {
+  const [tab, setTab]             = useState('monitoring');
   const [vehicules, setVehicules] = useState([]);
   const [agents, setAgents]       = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -34,6 +37,7 @@ export default function VehiculesPage() {
   const [selected, setSelected]   = useState(null);
   const [showForm, setShowForm]   = useState(false);
   const [editing, setEditing]     = useState(null);
+  const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
   const [form, setForm] = useState({
     immatriculation: '', marque: '', modele: '', type_vehicule: 'BENNE',
     capacite_tonnes: '', kilometrage: '', id_agent: '', statut: 'ACTIF',
@@ -45,11 +49,22 @@ export default function VehiculesPage() {
       const [data, agentsData] = await Promise.all([getVehicules(), getAgents()]);
       setVehicules(Array.isArray(data) ? data : data?.data || []);
       setAgents(agentsData || []);
+      setCountdown(REFRESH_INTERVAL / 1000);
     } catch { setError('Erreur chargement véhicules'); }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (tab !== 'monitoring') return;
+    const iv = setInterval(load, REFRESH_INTERVAL);
+    return () => clearInterval(iv);
+  }, [load, tab]);
+  useEffect(() => {
+    if (tab !== 'monitoring') return;
+    const iv = setInterval(() => setCountdown(c => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(iv);
+  }, [tab]);
 
   const agentMap = useMemo(() => {
     const m = {};
@@ -131,61 +146,56 @@ export default function VehiculesPage() {
     total: vehicules.length,
     actif: vehicules.filter(v => v.statut === 'ACTIF').length,
     maintenance: vehicules.filter(v => v.statut === 'EN_MAINTENANCE').length,
+    inactif: vehicules.filter(v => v.statut === 'INACTIF').length,
     types: Object.entries(TYPE_META).map(([k, v]) => ({ key: k, label: v.label, count: vehicules.filter(vh => vh.type_vehicule === k).length })),
   }), [vehicules]);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 20, gap: 16 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <Truck size={22} color="#3b82f6" />
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0, flex: 1 }}>
-          Véhicules <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}>({filtered.length})</span>
-        </h1>
-        <button onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, background: '#3b82f6', color: '#fff' }}>
-          <Plus size={16} /> Nouveau
-        </button>
-      </div>
+  const shellStats = [
+    { label: 'Total',          value: stats.total,       color: '#3b82f6' },
+    { label: 'Actifs',         value: stats.actif,       color: '#10b981' },
+    { label: 'En maintenance', value: stats.maintenance, color: '#f59e0b' },
+    { label: 'Inactifs',       value: stats.inactif,     color: '#6b7280' },
+  ];
 
+  const shellFilters = (
+    <>
+      {['all', 'ACTIF', 'INACTIF', 'EN_MAINTENANCE'].map(f => (
+        <button key={f} onClick={() => setFilter(f)}
+          style={{ padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: filter === f ? '#3b82f6' : 'rgba(255,255,255,0.06)', color: filter === f ? '#fff' : '#94a3b8', transition: 'all 0.15s' }}>
+          {f === 'all' ? 'Tous' : (STATUS_META[f]?.label || f)}
+        </button>
+      ))}
+      <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
+        <option value="all">Tous types</option>
+        {Object.entries(TYPE_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+      </select>
+    </>
+  );
+
+  return (
+    <PageShell
+      icon={Truck}
+      title="Véhicules"
+      count={filtered.length}
+      hasTabs={true}
+      activeTab={tab}
+      onTabChange={(t) => { setTab(t); setSelected(null); }}
+      stats={shellStats}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder="Rechercher un véhicule..."
+      createLabel="Nouveau véhicule"
+      onCreateClick={openCreate}
+      refreshCountdown={countdown}
+      onRefresh={() => { setLoading(true); load(); }}
+      filters={shellFilters}
+    >
       {error && (
         <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '8px 14px', color: '#fca5a5', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {error} <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer' }}><X size={14} /></button>
         </div>
       )}
-
-      {/* Stats row */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {[
-          { label: 'Total', value: stats.total, color: '#3b82f6' },
-          { label: 'Actifs', value: stats.actif, color: '#10b981' },
-          { label: 'Maintenance', value: stats.maintenance, color: '#f59e0b' },
-        ].map(s => (
-          <div key={s.label} style={{ background: '#1e2433', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, minWidth: 120 }}>
-            <span style={{ fontSize: '1.3rem', fontWeight: 800, color: s.color }}>{s.value}</span>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: '1 1 200px' }}>
-          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-          <input placeholder="Rechercher…" value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e2e8f0', fontSize: '0.82rem', padding: '7px 12px 7px 32px', outline: 'none', boxSizing: 'border-box' }} />
-        </div>
-        {['all', 'ACTIF', 'INACTIF', 'EN_MAINTENANCE'].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            style={{ padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: filter === f ? '#3b82f6' : 'rgba(255,255,255,0.06)', color: filter === f ? '#fff' : '#94a3b8', transition: 'all 0.15s' }}>
-            {f === 'all' ? 'Tous' : (STATUS_META[f]?.label || f)}
-          </button>
-        ))}
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
-          <option value="all">Tous types</option>
-          {Object.entries(TYPE_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
-      </div>
 
       {/* Dual panel */}
       <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0 }}>
@@ -369,7 +379,7 @@ export default function VehiculesPage() {
       )}
 
       <style>{`@keyframes slideIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }`}</style>
-    </div>
+    </PageShell>
   );
 }
 

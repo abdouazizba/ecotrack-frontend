@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  Cpu, Activity, Plus, Search, RefreshCw, AlertTriangle, Battery,
+  Cpu, Activity, AlertTriangle, Battery,
   Thermometer, Wifi, Gauge, ChevronLeft, ChevronRight, X,
   Edit2, Trash2, Link2, CheckCircle, WrenchIcon, PowerOff,
   Package, Calendar, Clock, MapPin,
@@ -10,6 +10,7 @@ import {
   getCapteurs, createCapteur, updateCapteur, deleteCapteur,
   assignCapteurToConteneur, getContainers, getZones,
 } from '../../../services/api';
+import PageShell from '../../../components/common/PageShell';
 import CapteurFormModal from './components/CapteurFormModal';
 import AssignConteneurModal from './components/AssignConteneurModal';
 import './CapteurPage.css';
@@ -327,101 +328,65 @@ export default function CapteurPage() {
     );
   };
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 20, gap: 16 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <Cpu size={22} color="#3b82f6" />
-        <h1 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>
-          Capteurs & IoT <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#64748b' }}>({filtered.length})</span>
-        </h1>
+  const shellStats = [
+    { label: 'Total', value: stats.total, color: '#3b82f6' },
+    { label: 'Actifs', value: stats.active, color: '#10b981' },
+    { label: 'Critiques', value: stats.critical, color: '#ef4444' },
+    { label: 'Batterie faible', value: stats.lowBatt, color: '#f59e0b' },
+  ];
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 3, marginLeft: 8 }}>
-          {[
-            { id: 'monitoring', icon: Activity, label: 'Monitoring' },
-            { id: 'gestion', icon: Cpu, label: 'Gestion' },
-          ].map(t => (
-            <button key={t.id} onClick={() => { setTab(t.id); setSelected(null); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, background: tab === t.id ? '#3b82f6' : 'transparent', color: tab === t.id ? '#fff' : '#64748b', transition: 'all 0.15s' }}>
-              <t.icon size={14} /> {t.label}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        {tab === 'monitoring' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem', color: '#64748b' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
-            <span>Refresh {countdown}s</span>
-            <button onClick={() => { setLoading(true); load(); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.78rem' }}>
-              <RefreshCw size={12} /> Rafraîchir
-            </button>
-          </div>
-        )}
-        {tab === 'gestion' && (
-          <button onClick={() => { setEditCapteur(null); setShowForm(true); }}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, background: '#3b82f6', color: '#fff' }}>
-            <Plus size={16} /> Nouveau capteur
+  const shellFilters = (
+    <>
+      {['all', 'ACTIF', 'INACTIF', 'EN_MAINTENANCE'].map(f => (
+        <button key={f} onClick={() => setFilter(f)}
+          style={{ padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: filter === f ? '#3b82f6' : 'rgba(255,255,255,0.06)', color: filter === f ? '#fff' : '#94a3b8' }}>
+          {f === 'all' ? 'Tous' : (STATUT_META[f]?.label || f)}
+        </button>
+      ))}
+      <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
+        <option value="all">Tous types</option>
+        {Object.entries(TYPE_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+      </select>
+      {tab === 'monitoring' && (
+        <>
+          <select value={zoneFilter} onChange={e => setZoneFilter(e.target.value)}
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
+            <option value="all">Toutes zones</option>
+            {zones.map(z => <option key={z.id} value={z.id}>{z.nom || z.name}</option>)}
+          </select>
+          <button onClick={() => setCriticalOnly(!criticalOnly)}
+            style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, background: criticalOnly ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.06)', color: criticalOnly ? '#ef4444' : '#94a3b8' }}>
+            <AlertTriangle size={11} /> Critiques
           </button>
-        )}
-      </div>
+        </>
+      )}
+    </>
+  );
 
+  return (
+    <PageShell
+      icon={Cpu}
+      title="Capteurs & IoT"
+      count={filtered.length}
+      hasTabs={true}
+      activeTab={tab}
+      onTabChange={(t) => { setTab(t); setSelected(null); }}
+      stats={shellStats}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder="Rechercher..."
+      createLabel="Nouveau capteur"
+      onCreateClick={() => { setEditCapteur(null); setShowForm(true); }}
+      refreshCountdown={countdown}
+      onRefresh={() => { setLoading(true); load(); }}
+      filters={shellFilters}
+    >
       {error && (
         <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '8px 14px', color: '#fca5a5', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {error} <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#fca5a5', cursor: 'pointer' }}><X size={14} /></button>
         </div>
       )}
-
-      {/* Stats */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {[
-          { label: 'Total', value: stats.total, color: '#3b82f6' },
-          { label: 'Actifs', value: stats.active, color: '#10b981' },
-          { label: 'Critiques', value: stats.critical, color: '#ef4444' },
-          { label: 'Batterie faible', value: stats.lowBatt, color: '#f59e0b' },
-        ].map(s => (
-          <div key={s.label} style={{ background: '#1e2433', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, minWidth: 110 }}>
-            <span style={{ fontSize: '1.3rem', fontWeight: 800, color: s.color }}>{s.value}</span>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: '1 1 180px' }}>
-          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-          <input placeholder="Rechercher…" value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#e2e8f0', fontSize: '0.82rem', padding: '7px 12px 7px 32px', outline: 'none', boxSizing: 'border-box' }} />
-        </div>
-        {['all', 'ACTIF', 'INACTIF', 'EN_MAINTENANCE'].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            style={{ padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: filter === f ? '#3b82f6' : 'rgba(255,255,255,0.06)', color: filter === f ? '#fff' : '#94a3b8' }}>
-            {f === 'all' ? 'Tous' : (STATUT_META[f]?.label || f)}
-          </button>
-        ))}
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
-          <option value="all">Tous types</option>
-          {Object.entries(TYPE_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
-        {tab === 'monitoring' && (
-          <>
-            <select value={zoneFilter} onChange={e => setZoneFilter(e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', padding: '6px 10px', cursor: 'pointer' }}>
-              <option value="all">Toutes zones</option>
-              {zones.map(z => <option key={z.id} value={z.id}>{z.nom || z.name}</option>)}
-            </select>
-            <button onClick={() => setCriticalOnly(!criticalOnly)}
-              style={{ padding: '5px 12px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, background: criticalOnly ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.06)', color: criticalOnly ? '#ef4444' : '#94a3b8' }}>
-              <AlertTriangle size={11} /> Critiques
-            </button>
-          </>
-        )}
-      </div>
 
       {/* Dual panel */}
       <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0 }}>
@@ -463,10 +428,9 @@ export default function CapteurPage() {
       <AssignConteneurModal show={showAssign} capteur={assignTarget} conteneurs={containers} onClose={() => setShowAssign(false)} onSubmit={handleAssignSubmit} />
 
       <style>{`
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
       `}</style>
-    </div>
+    </PageShell>
   );
 }
 

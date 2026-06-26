@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Truck } from 'lucide-react';
 import {
   getTournees, createTournee, updateTournee, deleteTournee,
   updateTourneeStatus, addSignalementToTournee, removeSignalementFromTournee,
@@ -7,6 +7,7 @@ import {
   getSignalements, getAgents, getZones, getContainers, getVehicules,
 } from '../../../services/api';
 import { exportToCsv } from '../../../utils/exportCsv';
+import PageShell from '../../../components/common/PageShell';
 import {
   TourneesList,
   TourneeDetail,
@@ -14,6 +15,16 @@ import {
   AddSignalementsModal,
 } from './components';
 import './TourneesPage.css';
+
+const REFRESH_INTERVAL = 30000;
+
+const FILTERS = [
+  ['all', 'Toutes'],
+  ['today', "Aujourd'hui"],
+  ['pending', 'À planifier'],
+  ['in_progress', 'En cours'],
+  ['done', 'Terminées'],
+];
 
 export default function TourneesPage() {
   const [tournees, setTournees]               = useState([]);
@@ -28,6 +39,10 @@ export default function TourneesPage() {
   const [loading, setLoading]                 = useState(true);
   const [error, setError]                     = useState(null);
 
+  const [tab, setTab]                         = useState('gestion');
+  const [countdown, setCountdown]             = useState(REFRESH_INTERVAL / 1000);
+  const [search, setSearch]                   = useState('');
+
   const [showCreate, setShowCreate]           = useState(false);
   const [editTarget, setEditTarget]           = useState(null);
   const [showAddSig, setShowAddSig]           = useState(false);
@@ -39,6 +54,7 @@ export default function TourneesPage() {
     try {
       const data = await getTournees();
       setTournees(Array.isArray(data) ? data : []);
+      setCountdown(REFRESH_INTERVAL / 1000);
       setError(null);
     } catch {
       setError('Erreur lors du chargement des tournées');
@@ -67,6 +83,19 @@ export default function TourneesPage() {
     });
   }, [loadTournees]);
 
+  // ── Auto-refresh en mode monitoring ─────────────────────────────────────────
+  useEffect(() => {
+    if (tab !== 'monitoring') return;
+    const iv = setInterval(loadTournees, REFRESH_INTERVAL);
+    return () => clearInterval(iv);
+  }, [loadTournees, tab]);
+
+  useEffect(() => {
+    if (tab !== 'monitoring') return;
+    const iv = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(iv);
+  }, [tab]);
+
   // ── Chargement signalements d'une tournée ──────────────────────────────────
   useEffect(() => {
     if (!selectedId) { setTourneeSignalements([]); return; }
@@ -90,13 +119,36 @@ export default function TourneesPage() {
   );
 
   const filtered = useMemo(() => {
-    if (filter === 'all') return tournees;
+    let list = tournees;
     if (filter === 'today') {
       const today = new Date().toISOString().slice(0, 10);
-      return tournees.filter((t) => (t.date_prevue || '').slice(0, 10) === today);
+      list = list.filter((t) => (t.date_prevue || '').slice(0, 10) === today);
+    } else if (filter !== 'all') {
+      list = list.filter((t) => t.status === filter);
     }
-    return tournees.filter((t) => t.status === filter);
-  }, [tournees, filter]);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((t) =>
+        (t.titre || '').toLowerCase().includes(q) ||
+        (t.zone_nom || '').toLowerCase().includes(q) ||
+        (t.agent_nom || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [tournees, filter, search]);
+
+  // ── Stats ────────────────────────────────────────────────────────────────
+  const stats = useMemo(() => {
+    const enCours   = tournees.filter((t) => t.status === 'in_progress').length;
+    const planifiees = tournees.filter((t) => t.status === 'pending').length;
+    const terminees = tournees.filter((t) => t.status === 'done').length;
+    return [
+      { label: 'Total',      value: tournees.length, color: '#3b82f6' },
+      { label: 'En cours',   value: enCours,         color: '#f59e0b' },
+      { label: 'Planifiées', value: planifiees,       color: '#8b5cf6' },
+      { label: 'Terminées',  value: terminees,        color: '#10b981' },
+    ];
+  }, [tournees]);
 
   // Map conteneurId → zoneId for quick zone lookup
   const conteneurZoneMap = useMemo(() => {
@@ -244,24 +296,63 @@ export default function TourneesPage() {
     exportToCsv(`tournees_${today}.csv`, headers, rows);
   }, [filtered]);
 
+  // ── Filters node (pill buttons) ─────────────────────────────────────────
+  const filtersNode = (
+    <>
+      {FILTERS.map(([key, label]) => (
+        <button
+          key={key}
+          onClick={() => setFilter(key)}
+          style={{
+            padding: '5px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
+            fontSize: '0.78rem', fontWeight: 600,
+            background: filter === key ? '#10b981' : 'rgba(255,255,255,0.06)',
+            color: filter === key ? '#fff' : '#94a3b8',
+            transition: 'all 0.15s', fontFamily: 'inherit',
+          }}
+        >
+          {label}
+        </button>
+      ))}
+      <button
+        onClick={handleExportCsv}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px',
+          borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(255,255,255,0.05)', color: '#94a3b8', cursor: 'pointer',
+          fontSize: '0.78rem', fontWeight: 500, fontFamily: 'inherit',
+        }}
+      >
+        <Download size={14} /> CSV
+      </button>
+    </>
+  );
+
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="tournees-page">
+    <PageShell
+      icon={Truck}
+      title="Tournées"
+      count={filtered.length}
+      hasTabs
+      activeTab={tab}
+      onTabChange={(t) => { setTab(t); setSelectedId(null); }}
+      stats={stats}
+      search={search}
+      onSearchChange={setSearch}
+      searchPlaceholder="Rechercher une tournée..."
+      onCreateClick={() => setShowCreate(true)}
+      createLabel="Nouvelle tournée"
+      refreshCountdown={countdown}
+      onRefresh={() => { setLoading(true); loadTournees(); }}
+      filters={filtersNode}
+    >
       {error && (
         <div className="tournees-error">
           {error}
           <button onClick={() => setError(null)}>×</button>
         </div>
       )}
-
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 12px 8px' }}>
-        <button
-          onClick={handleExportCsv}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#94a3b8', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 500 }}
-        >
-          <Download size={14} /> Exporter CSV
-        </button>
-      </div>
 
       <div className="tournees-split">
         <TourneesList
@@ -270,8 +361,6 @@ export default function TourneesPage() {
           filter={filter}
           loading={loading}
           onSelect={setSelectedId}
-          onFilterChange={setFilter}
-          onCreateClick={() => setShowCreate(true)}
         />
 
         <div className="tournees-right">
@@ -319,7 +408,6 @@ export default function TourneesPage() {
         onClose={() => setShowAddSig(false)}
         onSubmit={handleAddSignalements}
       />
-
-    </div>
+    </PageShell>
   );
 }
