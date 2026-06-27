@@ -48,10 +48,6 @@ const labelStyle = {
   marginBottom: 6, color: '#64748b', fontSize: '0.75rem',
 };
 
-const valueStyle = {
-  color: '#e2e8f0', fontSize: '0.92rem', fontWeight: 600, margin: 0,
-};
-
 function StatusDropdown({ current, onChange }) {
   const [open, setOpen] = useState(false);
   const currentOpt = STATUS_OPTIONS.find((o) => o.value === current) || STATUS_OPTIONS[0];

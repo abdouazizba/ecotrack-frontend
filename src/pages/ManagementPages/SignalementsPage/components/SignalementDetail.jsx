@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   AlertCircle, Clock, CheckCircle, XCircle, Trash2,
   MapPin, Package, Tag, Calendar, ArrowRight, RotateCcw,
-  AlertTriangle, Image, History, Route, Plus,
+  AlertTriangle, Image, History, Route,
 } from 'lucide-react';
 import SignalementAudit from './SignalementAudit';
 

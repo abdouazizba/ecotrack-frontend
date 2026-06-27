@@ -12,14 +12,6 @@ const genTag = () => {
 
 const EMPTY = { name: '', type: 'standard', capacity: 100, zoneId: '', status: 'actif', latitude: '', longitude: '' };
 
-const inputStyle = {
-  width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: 8, color: '#e2e8f0', padding: '8px 12px', fontSize: '0.88rem', outline: 'none',
-  boxSizing: 'border-box', fontFamily: 'inherit',
-};
-
-const labelStyle = { fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 };
-
 export default function ContainerForm({ show, editingContainer, zones: zonesProp, onClose, onSubmit }) {
   const [form, setForm] = useState(EMPTY);
   const [showMap, setShowMap] = useState(false);

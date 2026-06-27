@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import EchartsStatCard from '../../../components/charts/EchartsStatCard';
-import { Package, AlertTriangle, Truck, Users, TrendingUp, Zap } from 'lucide-react';
+import { Package, AlertTriangle, Truck, Zap } from 'lucide-react';
 
 const sectionTitle = (icon, label) => (
   <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0 2px' }}>

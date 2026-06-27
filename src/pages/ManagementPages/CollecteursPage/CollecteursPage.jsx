@@ -383,13 +383,3 @@ export default function VehiculesPage() {
   );
 }
 
-const inputStyle = { width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, color: '#e2e8f0', padding: '8px 12px', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' };
-
-function Field({ label, required, children }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12, flex: 1 }}>
-      <label style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>{label}{required && <span style={{ color: '#ef4444' }}> *</span>}</label>
-      {children}
-    </div>
-  );
-}

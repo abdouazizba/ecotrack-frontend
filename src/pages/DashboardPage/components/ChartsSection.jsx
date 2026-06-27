@@ -99,30 +99,6 @@ function buildPriority(signalements) {
   };
 }
 
-function buildStatutSig(signalements) {
-  const STATUTS = [
-    { key: 'pending',     label: 'Ouvert',   color: COLORS.amber },
-    { key: 'in_progress', label: 'En cours', color: COLORS.blue },
-    { key: 'closed',      label: 'Fermé',    color: COLORS.green },
-    { key: 'rejected',    label: 'Rejeté',   color: COLORS.red },
-  ];
-  const counts = {};
-  signalements.forEach((s) => { counts[s.status] = (counts[s.status] || 0) + 1; });
-  const items = STATUTS.map((s) => ({ value: counts[s.key] || 0, name: s.label, itemStyle: { color: s.color } })).filter((i) => i.value > 0);
-
-  return {
-    tooltip: { ...TOOLTIP, trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    legend: { bottom: 0, textStyle: { color: '#64748b', fontSize: 12 } },
-    series: [{
-      type: 'pie', radius: ['42%', '68%'], center: ['50%', '44%'],
-      data: items.length ? items : [{ value: 1, name: 'Aucune donnée', itemStyle: { color: '#e2e8f0' } }],
-      itemStyle: { borderColor: '#fff', borderWidth: 2 },
-      label: { show: false },
-      emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.2)' } },
-    }],
-  };
-}
-
 function buildFillByZone(containers, zones) {
   const zoneData = zones.map((z) => {
     const zc = containers.filter((c) => c.zoneId === z.id && c.fillLevel != null);
