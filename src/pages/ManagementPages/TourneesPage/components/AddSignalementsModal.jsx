@@ -57,7 +57,7 @@ export default function AddSignalementsModal({
               <List size={12} /> Liste
             </button>
           </div>
-          <button className="t-modal-close" onClick={handleClose}><X size={18} /></button>
+          <button className="t-modal-close" onClick={handleClose} aria-label="Fermer"><X size={18} /></button>
         </div>
 
         <p style={{ padding: '0 16px', margin: '0 0 8px', color: '#64748b', fontSize: '0.82rem' }}>

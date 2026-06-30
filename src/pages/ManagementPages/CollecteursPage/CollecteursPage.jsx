@@ -318,7 +318,7 @@ export default function VehiculesPage() {
             <div className="modal-right">
               <div className="t-modal-header">
                 <h3>{editing ? 'Modifier le véhicule' : 'Nouveau véhicule'}</h3>
-                <button className="t-modal-close" onClick={() => setShowForm(false)}><X size={18} /></button>
+                <button className="t-modal-close" onClick={() => setShowForm(false)} aria-label="Fermer"><X size={18} /></button>
               </div>
               <form onSubmit={handleSubmit} className="t-modal-form">
                 <div className="t-field" style={{ display: 'flex', gap: 12 }}>

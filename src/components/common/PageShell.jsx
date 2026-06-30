@@ -58,11 +58,21 @@ export default function PageShell({
         </h1>
 
         {hasTabs && (
-          <div style={toggle.wrap}>
-            <button onClick={() => onTabChange?.('monitoring')} style={toggle.btn(activeTab === 'monitoring')}>
+          <div style={toggle.wrap} role="tablist" aria-label="Mode d'affichage">
+            <button
+              onClick={() => onTabChange?.('monitoring')}
+              style={toggle.btn(activeTab === 'monitoring')}
+              role="tab"
+              aria-selected={activeTab === 'monitoring'}
+            >
               <Activity size={14} /> Monitoring
             </button>
-            <button onClick={() => onTabChange?.('gestion')} style={toggle.btn(activeTab === 'gestion')}>
+            <button
+              onClick={() => onTabChange?.('gestion')}
+              style={toggle.btn(activeTab === 'gestion')}
+              role="tab"
+              aria-selected={activeTab === 'gestion'}
+            >
               <Settings size={14} /> Gestion
             </button>
           </div>
@@ -75,7 +85,7 @@ export default function PageShell({
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
             <span>Refresh {refreshCountdown}s</span>
             {onRefresh && (
-              <button onClick={onRefresh} style={{
+              <button onClick={onRefresh} aria-label="Rafraîchir les données" style={{
                 display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 7,
                 border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)',
                 color: '#94a3b8', cursor: 'pointer', fontSize: '0.78rem', fontFamily: 'inherit',
@@ -101,6 +111,7 @@ export default function PageShell({
             <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
             <input
               placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
               value={search || ''}
               onChange={(e) => onSearchChange(e.target.value)}
               style={{

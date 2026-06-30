@@ -36,7 +36,7 @@ export default function AssignConteneurModal({ show, capteur, conteneurs, onClos
             <Link2 size={16} style={{ marginRight: 8, color: '#7c3aed' }} />
             Assigner à un conteneur
           </h3>
-          <button className="cap-modal-close" onClick={handleClose}><X size={18} /></button>
+          <button className="cap-modal-close" onClick={handleClose} aria-label="Fermer"><X size={18} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="cap-modal-form">

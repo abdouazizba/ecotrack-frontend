@@ -74,7 +74,7 @@ export default function ContainerForm({ show, editingContainer, zones: zonesProp
         <div className="modal-right">
           <div className="t-modal-header">
             <h3>{editingContainer ? 'Modifier le conteneur' : 'Nouveau conteneur'}</h3>
-            <button className="t-modal-close" onClick={onClose}><X size={18} /></button>
+            <button className="t-modal-close" onClick={onClose} aria-label="Fermer"><X size={18} /></button>
           </div>
 
           <form onSubmit={handleSubmit} className="t-modal-form">

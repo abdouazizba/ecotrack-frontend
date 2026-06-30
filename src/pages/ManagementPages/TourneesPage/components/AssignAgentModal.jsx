@@ -22,7 +22,7 @@ export default function AssignAgentModal({ show, signalement, agents, onClose, o
       <div className="t-modal" onClick={(e) => e.stopPropagation()}>
         <div className="t-modal-header">
           <h3>Assigner un agent</h3>
-          <button className="t-modal-close" onClick={onClose}><X size={18} /></button>
+          <button className="t-modal-close" onClick={onClose} aria-label="Fermer"><X size={18} /></button>
         </div>
 
         <p className="t-modal-sub">

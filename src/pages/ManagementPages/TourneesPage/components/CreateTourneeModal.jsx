@@ -104,7 +104,7 @@ export default function CreateTourneeModal({
         <div className="modal-right">
           <div className="t-modal-header">
             <h3>{isEdit ? 'Modifier la tournée' : 'Nouvelle tournée'}</h3>
-            <button className="t-modal-close" onClick={handleClose}><X size={18} /></button>
+            <button className="t-modal-close" onClick={handleClose} aria-label="Fermer"><X size={18} /></button>
           </div>
           <form onSubmit={handleSubmit} className="t-modal-form">
 

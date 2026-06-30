@@ -86,7 +86,7 @@ export default function CapteurFormModal({ show, capteur, conteneurs: conteneurs
         <div className="modal-right">
         <div className="cap-modal-header">
           <h3>{isEdit ? 'Modifier le capteur' : 'Nouveau capteur'}</h3>
-          <button className="cap-modal-close" onClick={handleClose}><X size={18} /></button>
+          <button className="cap-modal-close" onClick={handleClose} aria-label="Fermer"><X size={18} /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="cap-modal-form" style={{ overflowY: 'auto', maxHeight: '70vh' }}>
